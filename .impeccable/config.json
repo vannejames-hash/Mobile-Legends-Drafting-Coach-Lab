@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "styles.css"
+        ],
+        "createdAt": "2026-11-18T22:36:31.713Z",
+        "reason": "Claude: L95 .team::before is a full-width top side-color bar (blue/red side indicator required by the spec's 'draft-side indicators'), not a side tab"
+      }
+    ]
+  }
+}

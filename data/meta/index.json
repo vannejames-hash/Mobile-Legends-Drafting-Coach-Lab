@@ -1,0 +1,11 @@
+{
+  "active": "mpl-ph-s18",
+  "datasets": {
+    "mpl-ph-s18": {
+      "label": "MPL PH Season 18",
+      "heroStats": "data/meta/mpl-ph-s18.json",
+      "draftLog": "data/drafts/mpl-ph-s18.json",
+      "usage": "data/meta/mpl-ph-s18-usage.json"
+    }
+  }
+}

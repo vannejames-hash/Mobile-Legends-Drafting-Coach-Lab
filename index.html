@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>ML Draft Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=Instrument+Sans:wght@400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top" id="header"></header>
+    <section class="stage" id="board" aria-label="Current draft"></section>
+    <main class="main">
+      <section class="picker" aria-label="Hero selection">
+        <div id="recs" class="recs"></div>
+        <div class="filterbar" id="filterbar">
+          <div class="chips" id="roleFilters" role="group" aria-label="Filter heroes"></div>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="chip" data-act="pool-filter" id="poolFilter" aria-pressed="false"><span class="star" aria-hidden="true">★</span> My pool</button>
+          <span class="spacer"></span>
+          <label class="search">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input id="search" type="search" placeholder="Search heroes" aria-label="Search heroes (start typing anywhere, Enter selects)" autocomplete="off" spellcheck="false" />
+            <kbd>Enter</kbd>
+          </label>
+        </div>
+        <div id="grid" class="grid" role="list"></div>
+        <div id="postdraft" class="postdraft" hidden></div>
+      </section>
+      <aside class="coach" id="coach" aria-label="Draft coach"></aside>
+    </main>
+  </div>
+  <div class="scrim" data-act="coach-close" aria-hidden="true"></div>
+  <div id="modal-root"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/ui/app.js"></script>
+</body>
+</html>

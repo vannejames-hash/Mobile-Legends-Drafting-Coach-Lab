@@ -1,0 +1,491 @@
+{
+  "id": "mpl-ph-s18-usage",
+  "dataset": "mpl-ph-s18",
+  "about": "Observed competitive usage only. Official hero identity lives in data/heroes.json. observedLanes stays null until the game-by-game draft log provides a role for each pick.",
+  "laneEvidence": "none: hero-stat table has no draft-slot data",
+  "flaggedForVerification": [
+    "barats",
+    "selena",
+    "belerick",
+    "zhuxin",
+    "gatotkaca",
+    "gloo",
+    "alice",
+    "kimmy",
+    "suyou",
+    "harley",
+    "chou",
+    "ruby",
+    "badang",
+    "lukas",
+    "dyrroth",
+    "harith",
+    "yisunshin",
+    "arlott",
+    "hilda",
+    "saber",
+    "yuzhong",
+    "fredrinn",
+    "baxia",
+    "edith",
+    "granger",
+    "guinevere",
+    "leomord",
+    "thamuz"
+  ],
+  "heroes": {
+    "freya": {
+      "picks": 24,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "atlas": {
+      "picks": 35,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "hirara": {
+      "picks": 127,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "paquito": {
+      "picks": 71,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "marcel": {
+      "picks": 47,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "barats": {
+      "picks": 54,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / exp; needs draft-slot data"
+    },
+    "uranus": {
+      "picks": 42,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "fanny": {
+      "picks": 15,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "nolan": {
+      "picks": 63,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "selena": {
+      "picks": 36,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes mid / roam; needs draft-slot data"
+    },
+    "carmilla": {
+      "picks": 49,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "eudora": {
+      "picks": 64,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "belerick": {
+      "picks": 68,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / exp; needs draft-slot data"
+    },
+    "masha": {
+      "picks": 13,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "esmeralda": {
+      "picks": 28,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "valentina": {
+      "picks": 46,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "aulus": {
+      "picks": 48,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "zhuxin": {
+      "picks": 44,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes mid / roam; needs draft-slot data"
+    },
+    "minotaur": {
+      "picks": 56,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "melissa": {
+      "picks": 23,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "rafaela": {
+      "picks": 29,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "gatotkaca": {
+      "picks": 54,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / exp; needs draft-slot data"
+    },
+    "mathilda": {
+      "picks": 26,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "obsidia": {
+      "picks": 37,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "gloo": {
+      "picks": 22,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / exp; needs draft-slot data"
+    },
+    "lylia": {
+      "picks": 19,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "claude": {
+      "picks": 43,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "kalea": {
+      "picks": 29,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "alice": {
+      "picks": 25,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes mid / exp; needs draft-slot data"
+    },
+    "brody": {
+      "picks": 28,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "cici": {
+      "picks": 32,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "kimmy": {
+      "picks": 27,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes gold / mid; needs draft-slot data"
+    },
+    "clint": {
+      "picks": 32,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "hylos": {
+      "picks": 31,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "suyou": {
+      "picks": 30,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / exp; needs draft-slot data"
+    },
+    "novaria": {
+      "picks": 21,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "harley": {
+      "picks": 13,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / mid; needs draft-slot data"
+    },
+    "miya": {
+      "picks": 22,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "moskov": {
+      "picks": 20,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "chou": {
+      "picks": 15,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / exp; needs draft-slot data"
+    },
+    "ruby": {
+      "picks": 12,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / roam; needs draft-slot data"
+    },
+    "badang": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "lukas": {
+      "picks": 11,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "angela": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "kaja": {
+      "picks": 6,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "vexana": {
+      "picks": 12,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "dyrroth": {
+      "picks": 6,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "zetian": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "harith": {
+      "picks": 7,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes mid / gold; needs draft-slot data"
+    },
+    "yve": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "cecilion": {
+      "picks": 8,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "phoveus": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "bruno": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "hanabi": {
+      "picks": 4,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "pharsa": {
+      "picks": 10,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "yisunshin": {
+      "picks": 9,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / gold; needs draft-slot data"
+    },
+    "sora": {
+      "picks": 7,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "arlott": {
+      "picks": 5,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / roam; needs draft-slot data"
+    },
+    "hilda": {
+      "picks": 4,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / roam; needs draft-slot data"
+    },
+    "aurora": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "beatrix": {
+      "picks": 4,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "hayabusa": {
+      "picks": 4,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "karrie": {
+      "picks": 6,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "estes": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "khufra": {
+      "picks": 4,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "saber": {
+      "picks": 2,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / roam; needs draft-slot data"
+    },
+    "yuzhong": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "khaleed": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "lapulapu": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "luoyi": {
+      "picks": 3,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "fredrinn": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / exp; needs draft-slot data"
+    },
+    "hanzo": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "baxia": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / jungle; needs draft-slot data"
+    },
+    "edith": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes roam / exp; needs draft-slot data"
+    },
+    "granger": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes gold / jungle; needs draft-slot data"
+    },
+    "guinevere": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "kagura": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "leomord": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes jungle / exp; needs draft-slot data"
+    },
+    "ling": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "lolita": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "lunox": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "terizla": {
+      "picks": 0,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "thamuz": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified",
+      "verify": "Lane split unknown: official lanes exp / jungle; needs draft-slot data"
+    },
+    "xborg": {
+      "picks": 0,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    },
+    "xavier": {
+      "picks": 1,
+      "observedLanes": null,
+      "laneStatus": "unverified"
+    }
+  }
+}

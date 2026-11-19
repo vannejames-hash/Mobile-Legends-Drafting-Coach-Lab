@@ -1,0 +1,871 @@
+{
+  "id": "mpl-ph-s18",
+  "source": "MPL PH Season 18 — mlbbdex.com hero stats (pasted by user)",
+  "status": "verified",
+  "importedAt": "2026-11-19",
+  "drafts": 172,
+  "fields": "winRate = wins / picks; presence = (picks + bans) / drafts",
+  "coverage": {
+    "heroRows": 85,
+    "totalPicks": 1720,
+    "expectedPicks": 1720,
+    "totalBans": 1720,
+    "maxBans": 1720,
+    "totalWins": 860,
+    "totalLosses": 860,
+    "complete": true,
+    "note": "Totals are consistent with the draft count."
+  },
+  "heroes": [
+    {
+      "id": "freya",
+      "hero": "Freya",
+      "picks": 24,
+      "bans": 148,
+      "wins": 18,
+      "losses": 6,
+      "winRate": 0.75,
+      "presence": 1
+    },
+    {
+      "id": "atlas",
+      "hero": "Atlas",
+      "picks": 35,
+      "bans": 133,
+      "wins": 22,
+      "losses": 13,
+      "winRate": 0.6286,
+      "presence": 0.9767
+    },
+    {
+      "id": "hirara",
+      "hero": "Hirara",
+      "picks": 127,
+      "bans": 39,
+      "wins": 57,
+      "losses": 70,
+      "winRate": 0.4488,
+      "presence": 0.9651
+    },
+    {
+      "id": "paquito",
+      "hero": "Paquito",
+      "picks": 71,
+      "bans": 81,
+      "wins": 42,
+      "losses": 29,
+      "winRate": 0.5915,
+      "presence": 0.8837
+    },
+    {
+      "id": "marcel",
+      "hero": "Marcel",
+      "picks": 47,
+      "bans": 75,
+      "wins": 26,
+      "losses": 21,
+      "winRate": 0.5532,
+      "presence": 0.7093
+    },
+    {
+      "id": "barats",
+      "hero": "Barats",
+      "picks": 54,
+      "bans": 61,
+      "wins": 31,
+      "losses": 23,
+      "winRate": 0.5741,
+      "presence": 0.6686
+    },
+    {
+      "id": "uranus",
+      "hero": "Uranus",
+      "picks": 42,
+      "bans": 72,
+      "wins": 21,
+      "losses": 21,
+      "winRate": 0.5,
+      "presence": 0.6628
+    },
+    {
+      "id": "fanny",
+      "hero": "Fanny",
+      "picks": 15,
+      "bans": 96,
+      "wins": 7,
+      "losses": 8,
+      "winRate": 0.4667,
+      "presence": 0.6453
+    },
+    {
+      "id": "nolan",
+      "hero": "Nolan",
+      "picks": 63,
+      "bans": 36,
+      "wins": 36,
+      "losses": 27,
+      "winRate": 0.5714,
+      "presence": 0.5756
+    },
+    {
+      "id": "selena",
+      "hero": "Selena",
+      "picks": 36,
+      "bans": 63,
+      "wins": 17,
+      "losses": 19,
+      "winRate": 0.4722,
+      "presence": 0.5756
+    },
+    {
+      "id": "carmilla",
+      "hero": "Carmilla",
+      "picks": 49,
+      "bans": 45,
+      "wins": 22,
+      "losses": 27,
+      "winRate": 0.449,
+      "presence": 0.5465
+    },
+    {
+      "id": "eudora",
+      "hero": "Eudora",
+      "picks": 64,
+      "bans": 30,
+      "wins": 32,
+      "losses": 32,
+      "winRate": 0.5,
+      "presence": 0.5465
+    },
+    {
+      "id": "belerick",
+      "hero": "Belerick",
+      "picks": 68,
+      "bans": 25,
+      "wins": 36,
+      "losses": 32,
+      "winRate": 0.5294,
+      "presence": 0.5407
+    },
+    {
+      "id": "masha",
+      "hero": "Masha",
+      "picks": 13,
+      "bans": 74,
+      "wins": 9,
+      "losses": 4,
+      "winRate": 0.6923,
+      "presence": 0.5058
+    },
+    {
+      "id": "esmeralda",
+      "hero": "Esmeralda",
+      "picks": 28,
+      "bans": 57,
+      "wins": 11,
+      "losses": 17,
+      "winRate": 0.3929,
+      "presence": 0.4942
+    },
+    {
+      "id": "valentina",
+      "hero": "Valentina",
+      "picks": 46,
+      "bans": 34,
+      "wins": 21,
+      "losses": 25,
+      "winRate": 0.4565,
+      "presence": 0.4651
+    },
+    {
+      "id": "aulus",
+      "hero": "Aulus",
+      "picks": 48,
+      "bans": 30,
+      "wins": 26,
+      "losses": 22,
+      "winRate": 0.5417,
+      "presence": 0.4535
+    },
+    {
+      "id": "zhuxin",
+      "hero": "Zhuxin",
+      "picks": 44,
+      "bans": 34,
+      "wins": 25,
+      "losses": 19,
+      "winRate": 0.5682,
+      "presence": 0.4535
+    },
+    {
+      "id": "minotaur",
+      "hero": "Minotaur",
+      "picks": 56,
+      "bans": 20,
+      "wins": 26,
+      "losses": 30,
+      "winRate": 0.4643,
+      "presence": 0.4419
+    },
+    {
+      "id": "melissa",
+      "hero": "Melissa",
+      "picks": 23,
+      "bans": 52,
+      "wins": 10,
+      "losses": 13,
+      "winRate": 0.4348,
+      "presence": 0.436
+    },
+    {
+      "id": "rafaela",
+      "hero": "Rafaela",
+      "picks": 29,
+      "bans": 44,
+      "wins": 19,
+      "losses": 10,
+      "winRate": 0.6552,
+      "presence": 0.4244
+    },
+    {
+      "id": "gatotkaca",
+      "hero": "Gatotkaca",
+      "picks": 54,
+      "bans": 12,
+      "wins": 22,
+      "losses": 32,
+      "winRate": 0.4074,
+      "presence": 0.3837
+    },
+    {
+      "id": "mathilda",
+      "hero": "Mathilda",
+      "picks": 26,
+      "bans": 38,
+      "wins": 12,
+      "losses": 14,
+      "winRate": 0.4615,
+      "presence": 0.3721
+    },
+    {
+      "id": "obsidia",
+      "hero": "Obsidia",
+      "picks": 37,
+      "bans": 25,
+      "wins": 19,
+      "losses": 18,
+      "winRate": 0.5135,
+      "presence": 0.3605
+    },
+    {
+      "id": "gloo",
+      "hero": "Gloo",
+      "picks": 22,
+      "bans": 36,
+      "wins": 13,
+      "losses": 9,
+      "winRate": 0.5909,
+      "presence": 0.3372
+    },
+    {
+      "id": "lylia",
+      "hero": "Lylia",
+      "picks": 19,
+      "bans": 35,
+      "wins": 8,
+      "losses": 11,
+      "winRate": 0.4211,
+      "presence": 0.314
+    },
+    {
+      "id": "claude",
+      "hero": "Claude",
+      "picks": 43,
+      "bans": 8,
+      "wins": 26,
+      "losses": 17,
+      "winRate": 0.6047,
+      "presence": 0.2965
+    },
+    {
+      "id": "kalea",
+      "hero": "Kalea",
+      "picks": 29,
+      "bans": 21,
+      "wins": 11,
+      "losses": 18,
+      "winRate": 0.3793,
+      "presence": 0.2907
+    },
+    {
+      "id": "alice",
+      "hero": "Alice",
+      "picks": 25,
+      "bans": 24,
+      "wins": 10,
+      "losses": 15,
+      "winRate": 0.4,
+      "presence": 0.2849
+    },
+    {
+      "id": "brody",
+      "hero": "Brody",
+      "picks": 28,
+      "bans": 21,
+      "wins": 7,
+      "losses": 21,
+      "winRate": 0.25,
+      "presence": 0.2849
+    },
+    {
+      "id": "cici",
+      "hero": "Cici",
+      "picks": 32,
+      "bans": 15,
+      "wins": 13,
+      "losses": 19,
+      "winRate": 0.4063,
+      "presence": 0.2733
+    },
+    {
+      "id": "kimmy",
+      "hero": "Kimmy",
+      "picks": 27,
+      "bans": 19,
+      "wins": 13,
+      "losses": 14,
+      "winRate": 0.4815,
+      "presence": 0.2674
+    },
+    {
+      "id": "clint",
+      "hero": "Clint",
+      "picks": 32,
+      "bans": 11,
+      "wins": 23,
+      "losses": 9,
+      "winRate": 0.7188,
+      "presence": 0.25
+    },
+    {
+      "id": "hylos",
+      "hero": "Hylos",
+      "picks": 31,
+      "bans": 6,
+      "wins": 15,
+      "losses": 16,
+      "winRate": 0.4839,
+      "presence": 0.2151
+    },
+    {
+      "id": "suyou",
+      "hero": "Suyou",
+      "picks": 30,
+      "bans": 5,
+      "wins": 17,
+      "losses": 13,
+      "winRate": 0.5667,
+      "presence": 0.2035
+    },
+    {
+      "id": "novaria",
+      "hero": "Novaria",
+      "picks": 21,
+      "bans": 11,
+      "wins": 10,
+      "losses": 11,
+      "winRate": 0.4762,
+      "presence": 0.186
+    },
+    {
+      "id": "harley",
+      "hero": "Harley",
+      "picks": 13,
+      "bans": 17,
+      "wins": 4,
+      "losses": 9,
+      "winRate": 0.3077,
+      "presence": 0.1744
+    },
+    {
+      "id": "miya",
+      "hero": "Miya",
+      "picks": 22,
+      "bans": 8,
+      "wins": 8,
+      "losses": 14,
+      "winRate": 0.3636,
+      "presence": 0.1744
+    },
+    {
+      "id": "moskov",
+      "hero": "Moskov",
+      "picks": 20,
+      "bans": 10,
+      "wins": 7,
+      "losses": 13,
+      "winRate": 0.35,
+      "presence": 0.1744
+    },
+    {
+      "id": "chou",
+      "hero": "Chou",
+      "picks": 15,
+      "bans": 9,
+      "wins": 6,
+      "losses": 9,
+      "winRate": 0.4,
+      "presence": 0.1395
+    },
+    {
+      "id": "ruby",
+      "hero": "Ruby",
+      "picks": 12,
+      "bans": 11,
+      "wins": 7,
+      "losses": 5,
+      "winRate": 0.5833,
+      "presence": 0.1337
+    },
+    {
+      "id": "badang",
+      "hero": "Badang",
+      "picks": 10,
+      "bans": 12,
+      "wins": 3,
+      "losses": 7,
+      "winRate": 0.3,
+      "presence": 0.1279
+    },
+    {
+      "id": "lukas",
+      "hero": "Lukas",
+      "picks": 11,
+      "bans": 10,
+      "wins": 5,
+      "losses": 6,
+      "winRate": 0.4545,
+      "presence": 0.1221
+    },
+    {
+      "id": "angela",
+      "hero": "Angela",
+      "picks": 10,
+      "bans": 10,
+      "wins": 4,
+      "losses": 6,
+      "winRate": 0.4,
+      "presence": 0.1163
+    },
+    {
+      "id": "kaja",
+      "hero": "Kaja",
+      "picks": 6,
+      "bans": 11,
+      "wins": 4,
+      "losses": 2,
+      "winRate": 0.6667,
+      "presence": 0.0988
+    },
+    {
+      "id": "vexana",
+      "hero": "Vexana",
+      "picks": 12,
+      "bans": 4,
+      "wins": 7,
+      "losses": 5,
+      "winRate": 0.5833,
+      "presence": 0.093
+    },
+    {
+      "id": "dyrroth",
+      "hero": "Dyrroth",
+      "picks": 6,
+      "bans": 9,
+      "wins": 3,
+      "losses": 3,
+      "winRate": 0.5,
+      "presence": 0.0872
+    },
+    {
+      "id": "zetian",
+      "hero": "Zetian",
+      "picks": 10,
+      "bans": 5,
+      "wins": 4,
+      "losses": 6,
+      "winRate": 0.4,
+      "presence": 0.0872
+    },
+    {
+      "id": "harith",
+      "hero": "Harith",
+      "picks": 7,
+      "bans": 7,
+      "wins": 4,
+      "losses": 3,
+      "winRate": 0.5714,
+      "presence": 0.0814
+    },
+    {
+      "id": "yve",
+      "hero": "Yve",
+      "picks": 10,
+      "bans": 4,
+      "wins": 7,
+      "losses": 3,
+      "winRate": 0.7,
+      "presence": 0.0814
+    },
+    {
+      "id": "cecilion",
+      "hero": "Cecilion",
+      "picks": 8,
+      "bans": 5,
+      "wins": 1,
+      "losses": 7,
+      "winRate": 0.125,
+      "presence": 0.0756
+    },
+    {
+      "id": "phoveus",
+      "hero": "Phoveus",
+      "picks": 10,
+      "bans": 3,
+      "wins": 3,
+      "losses": 7,
+      "winRate": 0.3,
+      "presence": 0.0756
+    },
+    {
+      "id": "bruno",
+      "hero": "Bruno",
+      "picks": 10,
+      "bans": 2,
+      "wins": 3,
+      "losses": 7,
+      "winRate": 0.3,
+      "presence": 0.0698
+    },
+    {
+      "id": "hanabi",
+      "hero": "Hanabi",
+      "picks": 4,
+      "bans": 8,
+      "wins": 3,
+      "losses": 1,
+      "winRate": 0.75,
+      "presence": 0.0698
+    },
+    {
+      "id": "pharsa",
+      "hero": "Pharsa",
+      "picks": 10,
+      "bans": 2,
+      "wins": 8,
+      "losses": 2,
+      "winRate": 0.8,
+      "presence": 0.0698
+    },
+    {
+      "id": "yisunshin",
+      "hero": "Yi Sun-shin",
+      "picks": 9,
+      "bans": 3,
+      "wins": 3,
+      "losses": 6,
+      "winRate": 0.3333,
+      "presence": 0.0698
+    },
+    {
+      "id": "sora",
+      "hero": "Sora",
+      "picks": 7,
+      "bans": 4,
+      "wins": 3,
+      "losses": 4,
+      "winRate": 0.4286,
+      "presence": 0.064
+    },
+    {
+      "id": "arlott",
+      "hero": "Arlott",
+      "picks": 5,
+      "bans": 5,
+      "wins": 3,
+      "losses": 2,
+      "winRate": 0.6,
+      "presence": 0.0581
+    },
+    {
+      "id": "hilda",
+      "hero": "Hilda",
+      "picks": 4,
+      "bans": 5,
+      "wins": 3,
+      "losses": 1,
+      "winRate": 0.75,
+      "presence": 0.0523
+    },
+    {
+      "id": "aurora",
+      "hero": "Aurora",
+      "picks": 3,
+      "bans": 3,
+      "wins": 2,
+      "losses": 1,
+      "winRate": 0.6667,
+      "presence": 0.0349
+    },
+    {
+      "id": "beatrix",
+      "hero": "Beatrix",
+      "picks": 4,
+      "bans": 2,
+      "wins": 3,
+      "losses": 1,
+      "winRate": 0.75,
+      "presence": 0.0349
+    },
+    {
+      "id": "hayabusa",
+      "hero": "Hayabusa",
+      "picks": 4,
+      "bans": 2,
+      "wins": 1,
+      "losses": 3,
+      "winRate": 0.25,
+      "presence": 0.0349
+    },
+    {
+      "id": "karrie",
+      "hero": "Karrie",
+      "picks": 6,
+      "bans": 0,
+      "wins": 3,
+      "losses": 3,
+      "winRate": 0.5,
+      "presence": 0.0349
+    },
+    {
+      "id": "estes",
+      "hero": "Estes",
+      "picks": 3,
+      "bans": 2,
+      "wins": 3,
+      "losses": 0,
+      "winRate": 1,
+      "presence": 0.0291
+    },
+    {
+      "id": "khufra",
+      "hero": "Khufra",
+      "picks": 4,
+      "bans": 1,
+      "wins": 3,
+      "losses": 1,
+      "winRate": 0.75,
+      "presence": 0.0291
+    },
+    {
+      "id": "saber",
+      "hero": "Saber",
+      "picks": 2,
+      "bans": 3,
+      "wins": 1,
+      "losses": 1,
+      "winRate": 0.5,
+      "presence": 0.0291
+    },
+    {
+      "id": "yuzhong",
+      "hero": "Yu Zhong",
+      "picks": 3,
+      "bans": 2,
+      "wins": 2,
+      "losses": 1,
+      "winRate": 0.6667,
+      "presence": 0.0291
+    },
+    {
+      "id": "khaleed",
+      "hero": "Khaleed",
+      "picks": 3,
+      "bans": 1,
+      "wins": 1,
+      "losses": 2,
+      "winRate": 0.3333,
+      "presence": 0.0233
+    },
+    {
+      "id": "lapulapu",
+      "hero": "Lapu-Lapu",
+      "picks": 3,
+      "bans": 0,
+      "wins": 2,
+      "losses": 1,
+      "winRate": 0.6667,
+      "presence": 0.0174
+    },
+    {
+      "id": "luoyi",
+      "hero": "Luo Yi",
+      "picks": 3,
+      "bans": 0,
+      "wins": 1,
+      "losses": 2,
+      "winRate": 0.3333,
+      "presence": 0.0174
+    },
+    {
+      "id": "fredrinn",
+      "hero": "Fredrinn",
+      "picks": 1,
+      "bans": 1,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0116
+    },
+    {
+      "id": "hanzo",
+      "hero": "Hanzo",
+      "picks": 1,
+      "bans": 1,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0116
+    },
+    {
+      "id": "baxia",
+      "hero": "Baxia",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "edith",
+      "hero": "Edith",
+      "picks": 1,
+      "bans": 0,
+      "wins": 1,
+      "losses": 0,
+      "winRate": 1,
+      "presence": 0.0058
+    },
+    {
+      "id": "granger",
+      "hero": "Granger",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "guinevere",
+      "hero": "Guinevere",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "kagura",
+      "hero": "Kagura",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "leomord",
+      "hero": "Leomord",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "ling",
+      "hero": "Ling",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "lolita",
+      "hero": "Lolita",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "lunox",
+      "hero": "Lunox",
+      "picks": 1,
+      "bans": 0,
+      "wins": 1,
+      "losses": 0,
+      "winRate": 1,
+      "presence": 0.0058
+    },
+    {
+      "id": "terizla",
+      "hero": "Terizla",
+      "picks": 0,
+      "bans": 1,
+      "wins": 0,
+      "losses": 0,
+      "winRate": null,
+      "presence": 0.0058
+    },
+    {
+      "id": "thamuz",
+      "hero": "Thamuz",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    },
+    {
+      "id": "xborg",
+      "hero": "X.Borg",
+      "picks": 0,
+      "bans": 1,
+      "wins": 0,
+      "losses": 0,
+      "winRate": null,
+      "presence": 0.0058
+    },
+    {
+      "id": "xavier",
+      "hero": "Xavier",
+      "picks": 1,
+      "bans": 0,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "presence": 0.0058
+    }
+  ]
+}

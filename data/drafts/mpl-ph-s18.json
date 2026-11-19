@@ -1,0 +1,88 @@
+{
+  "id": "mpl-ph-s18",
+  "source": "MPL PH Season 18",
+  "status": "pending",
+  "schema": {
+    "game": {
+      "id": "unique match/game identifier, e.g. \"W3D2-ONIC-FCAP-G2\"",
+      "winner": "blue | red",
+      "blue": {
+        "team": "team name",
+        "picks": [
+          {
+            "hero": "heroId",
+            "role": "exp | jungle | mid | gold | roam"
+          }
+        ],
+        "bans": [
+          "heroId, in ban order"
+        ]
+      },
+      "red": {
+        "team": "team name",
+        "picks": [
+          {
+            "hero": "heroId",
+            "role": "..."
+          }
+        ],
+        "bans": [
+          "heroId, in ban order"
+        ]
+      }
+    },
+    "notes": "Picks in pick order. The role per pick is what verifies each hero's observed lane (e.g. Lukas EXP vs Jungle).",
+    "verificationTargets": "Matches used to verify a draft format. picks/bans are unordered sets until 'orderedSequence' is filled from a draft-screen screenshot or game log: [{ type: 'ban'|'pick', side: 'blue'|'red', hero: heroId }] in chronological order, plus optional 'timers': { ban: s, pick: s }."
+  },
+  "games": [],
+  "verificationTargets": [
+    {
+      "id": "S18-GF-FLCN-RORA-G1",
+      "label": "Grand Final, Game 1",
+      "date": "2026-10-25",
+      "blue": {
+        "team": "Team Falcons PH",
+        "picks": [
+          "alice",
+          "hirara",
+          "eudora",
+          "cici",
+          "marcel"
+        ],
+        "bans": [
+          "esmeralda",
+          "kalea",
+          "kimmy",
+          "yuzhong",
+          "obsidia"
+        ]
+      },
+      "red": {
+        "team": "Aurora Gaming PH",
+        "picks": [
+          "arlott",
+          "suyou",
+          "zhuxin",
+          "chou",
+          "atlas"
+        ],
+        "bans": [
+          "masha",
+          "paquito",
+          "freya",
+          "barats",
+          "hylos"
+        ]
+      },
+      "winner": "red",
+      "duration": "14:24",
+      "evidence": {
+        "sets": "confirmed (published S18 match/stat records, provided by user 2026-11-19)",
+        "order": "not yet established: lists above are SETS, not chronological order",
+        "timers": "not yet established",
+        "roles": "not recorded"
+      },
+      "orderedSequence": null
+    }
+  ]
+}

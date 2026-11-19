@@ -1,0 +1,250 @@
+{
+  "about": "Draft formats consumed by the generic draft engine (src/draftState.js). A format is data: phases, side order per phase, timers and rules. Order tokens: 'b'/'r' = blue/red side; 'a'/'e' = your side/enemy side (resolved from the side you play). Picks record ORDER only; roles are assigned separately. Ban legality is per format: banMode 'blind' (Ranked: bans in simultaneous waves, the same hero may be banned by both sides within a wave, availability updates when the wave is revealed), 'sequential' (Tournament: visible, unique bans), 'free'. allowNoBan enables an explicit 'No ban' event.",
+  "default": "RANKED_DRAFT",
+  "formats": {
+    "RANKED_DRAFT": {
+      "label": "Ranked Draft",
+      "kind": "ranked",
+      "enforced": false,
+      "guided": true,
+      "bansPerSide": 5,
+      "picksPerSide": 5,
+      "flexBeforeRoleAssignment": true,
+      "swapPhase": true,
+      "phases": [
+        {
+          "id": "ban_a",
+          "type": "ban",
+          "label": "Ban phase · your bans",
+          "order": "a a a a a",
+          "timer": 30,
+          "wave": 1
+        },
+        {
+          "id": "ban_e",
+          "type": "ban",
+          "label": "Ban phase · enemy bans",
+          "order": "e e e e e",
+          "timer": 30,
+          "wave": 1
+        },
+        {
+          "id": "pick",
+          "type": "pick",
+          "label": "Pick phase",
+          "order": "b r r b b r r b b r",
+          "timer": 30
+        }
+      ],
+      "note": "Everyday live-logging mode, verified in-game: 5 + 5 blind bans upfront (duplicates and 'No ban' allowed), then picks B1 · R2 · B2 · R2 · B2 · R1. There is no second ban phase. Picks are hero-first with inferred, switchable roles.",
+      "banMode": "blind",
+      "allowNoBan": true,
+      "defaultBracket": "mythic",
+      "brackets": {
+        "mythic": {
+          "label": "Mythic",
+          "bansPerSide": 5,
+          "phases": [
+            {
+              "id": "ban_a",
+              "type": "ban",
+              "label": "Ban phase · your bans",
+              "order": "a a a a a",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "ban_e",
+              "type": "ban",
+              "label": "Ban phase · enemy bans",
+              "order": "e e e e e",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "pick",
+              "type": "pick",
+              "label": "Pick phase",
+              "order": "b r r b b r r b b r",
+              "timer": 30
+            }
+          ]
+        },
+        "legend": {
+          "label": "Legend",
+          "bansPerSide": 4,
+          "phases": [
+            {
+              "id": "ban_a",
+              "type": "ban",
+              "label": "Ban phase · your bans",
+              "order": "a a a a",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "ban_e",
+              "type": "ban",
+              "label": "Ban phase · enemy bans",
+              "order": "e e e e",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "pick",
+              "type": "pick",
+              "label": "Pick phase",
+              "order": "b r r b b r r b b r",
+              "timer": 30
+            }
+          ]
+        },
+        "epic": {
+          "label": "Epic",
+          "bansPerSide": 3,
+          "phases": [
+            {
+              "id": "ban_a",
+              "type": "ban",
+              "label": "Ban phase · your bans",
+              "order": "a a a",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "ban_e",
+              "type": "ban",
+              "label": "Ban phase · enemy bans",
+              "order": "e e e",
+              "timer": 30,
+              "wave": 1
+            },
+            {
+              "id": "pick",
+              "type": "pick",
+              "label": "Pick phase",
+              "order": "b r r b b r r b b r",
+              "timer": 30
+            }
+          ]
+        }
+      },
+      "bracketNote": "Ranked: one blind ban phase (your bans, then enemy bans, revealed together), then picks B1 · R2 · B2 · R2 · B2 · R1. Ban count per bracket: Mythic 5, Legend 4, Epic 3 (verified in-game for Mythic by the user; Legend/Epic counts as specified by the user).",
+      "banPhaseCount": 1,
+      "blindBans": true,
+      "secondBanPhase": false,
+      "pickOrder": [
+        "B1",
+        "R2",
+        "B2",
+        "R2",
+        "B2",
+        "R1"
+      ]
+    },
+    "MPL_PH_S18": {
+      "label": "Tournament / MPL",
+      "kind": "tournament",
+      "enforced": true,
+      "bansPerSide": 5,
+      "picksPerSide": 5,
+      "flexBeforeRoleAssignment": true,
+      "swapPhase": true,
+      "sideSelection": "Game 1 by coin toss; afterwards the loser of the previous game chooses side.",
+      "phases": [
+        {
+          "id": "ban1",
+          "type": "ban",
+          "label": "Ban phase 1",
+          "order": "b r b r b r",
+          "timer": 30
+        },
+        {
+          "id": "pick1",
+          "type": "pick",
+          "label": "Pick phase 1",
+          "order": "b r r b b r",
+          "timer": 30
+        },
+        {
+          "id": "ban2",
+          "type": "ban",
+          "label": "Ban phase 2",
+          "order": "r b r b",
+          "timer": 30
+        },
+        {
+          "id": "pick2",
+          "type": "pick",
+          "label": "Pick phase 2",
+          "order": "r b b r",
+          "timer": 30
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "confirmed": [
+          "Ban/pick runs in the game client's Tournament Mode (EWC 2026 MLBB rulebook §5.4.1, document shared with Moonton).",
+          "A hero Swap Phase follows the picks; swaps are final once it ends (same rulebook §5.5.5).",
+          "Side selection: coin toss for game 1, then the loser of the previous game chooses (same rulebook §5.5.3).",
+          "10 bans per game, 5 per side (S18 hero-stat table: 1,720 bans over 172 drafts)."
+        ],
+        "unconfirmed": [
+          "Exact per-action order (3+3 bans, B/RR/BB/R snake picks, 2+2 bans, R/BB/R picks): matches the client's Tournament Mode as described by third-party draft tools, not by an official MPL PH S18 document.",
+          "Timer values: not published in the sources found; 30s per action is a placeholder."
+        ],
+        "howToConfirm": "Compare against the ordered ban/pick log of any S18 game (e.g. Liquipedia match drafts or the broadcast) and update 'order' / 'timer' here."
+      },
+      "banMode": "sequential",
+      "allowNoBan": false,
+      "banPhaseCount": 2,
+      "firstBanPerSide": 3,
+      "secondBanPerSide": 2,
+      "blindBans": false,
+      "secondBanPhase": true
+    },
+    "FREE": {
+      "label": "Free Draft",
+      "kind": "free",
+      "enforced": false,
+      "bansPerSide": 5,
+      "picksPerSide": 5,
+      "flexBeforeRoleAssignment": true,
+      "swapPhase": true,
+      "phases": [
+        {
+          "id": "ban1",
+          "type": "ban",
+          "label": "Ban phase 1",
+          "order": "b r b r b r",
+          "timer": 30
+        },
+        {
+          "id": "pick1",
+          "type": "pick",
+          "label": "Pick phase 1",
+          "order": "b r r b b r",
+          "timer": 30
+        },
+        {
+          "id": "ban2",
+          "type": "ban",
+          "label": "Ban phase 2",
+          "order": "r b r b",
+          "timer": 30
+        },
+        {
+          "id": "pick2",
+          "type": "pick",
+          "label": "Pick phase 2",
+          "order": "r b b r",
+          "timer": 30
+        }
+      ],
+      "note": "Free Draft suggests the tournament order but allows any pick or ban on any slot, in any order, for learning and testing.",
+      "banMode": "free",
+      "allowNoBan": true,
+      "allowDuplicateBans": false
+    }
+  }
+}

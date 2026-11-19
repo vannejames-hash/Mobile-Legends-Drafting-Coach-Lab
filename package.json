@@ -1,0 +1,11 @@
+{
+  "name": "ml-draft-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ML Draft Lab — Mobile Legends drafting coach (Chapter 1: Match Mode)",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/engine.test.js && node tests/draft-reasoning.test.js && node tests/personal.test.js && node tests/composition.test.js && node tests/ranked-bans.test.js && node tests/roster.test.js && node tests/role-picks.test.js && node tests/role-board.test.js && node tests/draft-analysis.test.js && node tests/sharing.test.js"
+  }
+}
