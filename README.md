@@ -156,11 +156,13 @@ If `SUPABASE_URL` / `SUPABASE_ANON_KEY` are set, the local server also uses Supa
 ### Deploy (GitHub → Vercel)
 
 1. Push the repo to GitHub and import it in Vercel. `vercel.json` sets framework *Other*, no build step and the project root as output. It also rewrites `/match/:code` to the app and `/assets/*` to `public/assets/*`.
-2. In Supabase: SQL editor → run `supabase/schema.sql`, then `supabase/migrations/002_live_sync.sql`. The migration is non-destructive: it adds read grants for spectators, a `revision` counter and the realtime publication.
+2. In Supabase: SQL editor → run `supabase/schema.sql` (fresh project), then `supabase/migrations/20261120_fix_match_spectator_access.sql`. On a project that already ran the original schema, run only the migration. It is idempotent and keeps RLS enabled.
 3. In Vercel → Settings → Environment Variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (see `.env.example`).
 4. `api/config.js` serves those two public values to the app.
 
-**Sync model**: Supabase is the source of truth in production. Every accepted host write (host-token-checked RPC) gets the next `revision`. Spectators fetch the room, subscribe to that room's row changes, and fetch again on every (re)subscription. They also re-fetch when the page becomes visible or the network returns, and poll slowly only while realtime is disconnected. A revision at or below the one shown is ignored as stale.
+**Access model**: the browser key has **no** direct access to the tables. Each room has a host token (writes) and a **spectator key** (reads). Only SHA-256 hashes are stored, in a table the API cannot read. The match link is `/match/MLDL-XXXX#k=<spectator key>` (**Copy link** includes it). Spectators read one room through `get_match(code, key)`, which returns only that room's public fields. A wrong key reads nothing.
+
+**Sync model**: Supabase is the source of truth in production. Every accepted host write (`update_match`, host token checked) gets the next `revision`. A database trigger then broadcasts a hint `{revision, status}` (no draft data) on the room's channel `match:<code>`. Spectators fetch the room, subscribe to its channel, and re-read through `get_match` on every hint, on every (re)subscription, when the page becomes visible again, and every 20 s as a safety net (5 s while disconnected). A revision at or below the one shown is ignored as stale. `node tests/supabase-access.test.js` with `SUPABASE_URL` / `SUPABASE_ANON_KEY` set checks all of this against a live project.
 
 **Diagnostics**: add `?debug=1` to a match URL to show connection, room, revision and last-sync time (console lines are prefixed `[room]`). Add `?spectate=1` to open your own room read-only as a spectator.
 

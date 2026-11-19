@@ -66,9 +66,10 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
       if (!body.state || typeof body.state !== 'object') return json(res, 400, { error: 'state required' });
       const code = newCode();
       const hostToken = randomBytes(18).toString('base64url');
+      const viewToken = randomBytes(12).toString('base64url'); // spectator key: needed to read the room
       const now = Date.now();
-      rooms.set(code, { code, tokenHash: sha(hostToken), status: statusOf(body.state), revision: 0, state: { ...body.state, matchId: code, revision: 0 }, createdAt: now, updatedAt: now, clients: new Set() });
-      return json(res, 201, { code, hostToken, status: rooms.get(code).status, revision: 0 });
+      rooms.set(code, { code, tokenHash: sha(hostToken), viewHash: sha(viewToken), status: statusOf(body.state), revision: 0, state: { ...body.state, matchId: code, revision: 0 }, createdAt: now, updatedAt: now, clients: new Set() });
+      return json(res, 201, { code, hostToken, viewToken, status: rooms.get(code).status, revision: 0 });
     }
     const m = path.match(/^\/api\/rooms\/([^/]+)(\/events|\/end)?$/);
     if (!m) return json(res, 404, { error: 'not found' });
@@ -76,8 +77,12 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
     if (!CODE_RE.test(code)) return json(res, 400, { error: 'bad room code' });
     const room = rooms.get(code);
     if (!room) return json(res, 404, { error: 'room not found' });
+    // reading needs the spectator key (or the host token); a wrong key looks exactly like a missing room
+    const q0 = new URL(req.url, 'http://x').searchParams;
+    const canRead = room.viewHash === sha(q0.get('k') || '') || isHost(room, req) || room.tokenHash === sha(q0.get('t') || '');
 
     if (m[2] === '/events' && req.method === 'GET') {
+      if (!canRead) return json(res, 404, { error: 'room not found' });
       const q = new URL(req.url, 'http://x').searchParams; // EventSource cannot send headers: host token may come as ?t=
       const role = q.get('role') === 'host' && (isHost(room, req) || room.tokenHash === sha(q.get('t') || '')) ? 'host' : 'spectator';
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
@@ -96,7 +101,7 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
       broadcastState(room);
       return json(res, 200, { status: room.status, revision: room.revision });
     }
-    if (!m[2] && req.method === 'GET') return json(res, 200, publicRoom(room));
+    if (!m[2] && req.method === 'GET') return canRead ? json(res, 200, publicRoom(room)) : json(res, 404, { error: 'room not found' });
     if (!m[2] && req.method === 'PUT') {
       if (!isHost(room, req)) return json(res, 403, { error: 'only the host can modify this match' });
       if (room.status === 'COMPLETE') return json(res, 409, { error: 'this match is complete and read-only', status: room.status });

@@ -105,7 +105,7 @@ await test('S — create a live room → a spectator joins and receives the curr
   const room = await T.create(buildMatchState({ draft: d, me: hostMe(), profile: makeProfile(POOL) }));
   assert.match(room.code, CODE_RE);
   assert.ok(room.hostToken && room.hostToken.length >= 20);
-  const spec = sse(`${base}/api/rooms/${room.code}/events?role=spectator`);
+  const spec = sse(`${base}/api/rooms/${room.code}/events?role=spectator&k=${room.viewToken}`);
   const first = await spec.next('state');
   assert.equal(first.code, room.code);
   assert.equal(first.status, 'WAITING');
@@ -120,7 +120,7 @@ await test('T/U — host picks and bans reach the spectator without a refresh', 
   const me = hostMe();
   const prof = makeProfile(POOL);
   const room = await T.create(buildMatchState({ draft: d, me, profile: prof }));
-  const spec = sse(`${base}/api/rooms/${room.code}/events?role=spectator`);
+  const spec = sse(`${base}/api/rooms/${room.code}/events?role=spectator&k=${room.viewToken}`);
   await spec.next('state');
   // host bans (Ranked: 5 blind bans per side first)
   d.act('fanny');
@@ -152,7 +152,7 @@ await test('V — a spectator (no host token) cannot modify the match', async ()
     assert.equal(r.ok, false); assert.equal(r.code, 403);
   }
   assert.equal((await T.end(room.code, 'guess')).ok, false);
-  const now = (await T.get(room.code)).room;
+  const now = (await T.get(room.code, room.viewToken)).room;
   assert.equal(now.state.bans.length, 0, 'room unchanged');
 });
 
@@ -162,7 +162,7 @@ await test('W — a spectator refresh restores the current state', async () => {
   const room = await T.create(buildMatchState({ draft: d, me, profile: prof }));
   for (const id of ['fanny', 'ling', 'joy']) d.act(id);
   await T.update(room.code, room.hostToken, buildMatchState({ draft: d, me, profile: prof, recRole: 'gold', code: room.code }));
-  const fresh = (await T.get(room.code)).room; // what a reloaded spectator page fetches first
+  const fresh = (await T.get(room.code, room.viewToken)).room; // what a reloaded spectator page fetches first
   const v = makeDraft('RANKED_DRAFT');
   applyMatchState(v, fresh.state);
   assert.deepEqual(v.state.bans, d.state.bans);
@@ -175,7 +175,7 @@ await test('X — room A cannot access room B', async () => {
   const dB = makeDraft('RANKED_DRAFT'); dB.act('claude');
   const b = await T.create(buildMatchState({ draft: dB, me: hostMe(), profile: makeProfile() }));
   assert.notEqual(a.code, b.code);
-  const specA = sse(`${base}/api/rooms/${a.code}/events?role=spectator`);
+  const specA = sse(`${base}/api/rooms/${a.code}/events?role=spectator&k=${a.viewToken}`);
   await specA.next('state');
   // A's host token cannot write B
   const r = await T.update(b.code, a.hostToken, buildMatchState({ draft: makeDraft('RANKED_DRAFT'), me: hostMe(), profile: makeProfile() }));
@@ -184,7 +184,7 @@ await test('X — room A cannot access room B', async () => {
   dB.act('melissa');
   await T.update(b.code, b.hostToken, buildMatchState({ draft: dB, me: hostMe(), profile: makeProfile() }));
   await assert.rejects(specA.next('state', 400), /no state event/);
-  assert.equal((await T.get(a.code)).room.state.bans.length, 0);
+  assert.equal((await T.get(a.code, a.viewToken)).room.state.bans.length, 0);
   assert.equal((await T.get('MLDL-0000')).room, null, 'invalid codes are rejected');
   specA.close();
 });
@@ -200,7 +200,7 @@ await test('Y — a completed room becomes read-only', async () => {
   assert.equal(r.ok, false); assert.equal(r.code, 409, 'even the host cannot change a completed room');
   const ended = await T.create(buildMatchState({ draft: makeDraft('FREE'), me, profile: prof }));
   assert.ok((await T.end(ended.code, ended.hostToken)).ok, 'End match');
-  assert.equal((await T.get(ended.code)).room.status, 'COMPLETE');
+  assert.equal((await T.get(ended.code, ended.viewToken)).room.status, 'COMPLETE');
 });
 
 await test('Revisions — every host write gets the next revision; stale deliveries are ignored', async () => {
@@ -214,7 +214,7 @@ await test('Revisions — every host write gets the next revision; stale deliver
     revs.push((await T.update(room.code, room.hostToken, buildMatchState({ draft: d, me, profile: prof, code: room.code }))).revision);
   }
   assert.deepEqual(revs, [1, 2, 3]);
-  const now = (await T.get(room.code)).room;
+  const now = (await T.get(room.code, room.viewToken)).room;
   assert.equal(now.revision, 3); assert.equal(now.state.revision, 3);
   assert.equal(isNewer({ revision: 18 }, { revision: 17 }), true, 'r18 over r17 → apply');
   assert.equal(isNewer({ revision: 16 }, { revision: 17 }), false, 'r16 over r17 → ignore');
@@ -227,8 +227,8 @@ await test('Two spectators + reconnect: 5+5 bans and 6 picks restored on refresh
   const me = hostMe(); const prof = makeProfile(POOL);
   const room = await T.create(buildMatchState({ draft: d, me, profile: prof }));
   const pub = () => T.update(room.code, room.hostToken, buildMatchState({ draft: d, me, profile: prof, code: room.code }));
-  const s1 = sse(`${base}/api/rooms/${room.code}/events?role=spectator`);
-  const s2 = sse(`${base}/api/rooms/${room.code}/events?role=spectator`);
+  const s1 = sse(`${base}/api/rooms/${room.code}/events?role=spectator&k=${room.viewToken}`);
+  const s2 = sse(`${base}/api/rooms/${room.code}/events?role=spectator&k=${room.viewToken}`);
   await s1.next('state'); await s2.next('state');
   for (const id of ['freya', 'atlas', 'fanny', 'ling', 'joy', 'nolan', 'lancelot', 'hayabusa', 'arlott', 'julian', 'saber', 'suyou', 'karina', 'tigreal', 'claude', 'kadita']) { d.act(id); await pub(); }
   // both spectators converge on the latest revision
@@ -237,11 +237,11 @@ await test('Two spectators + reconnect: 5+5 bans and 6 picks restored on refresh
   assert.equal(a.revision, 16); assert.equal(b.revision, 16);
   assert.deepEqual(a.state.picks, b.state.picks);
   s2.close(); // spectator 2 closes the tab …
-  const reopened = (await T.get(room.code)).room; // … and reopens: first fetch
+  const reopened = (await T.get(room.code, room.viewToken)).room; // … and reopens: first fetch
   const v = makeDraft('RANKED_DRAFT'); applyMatchState(v, reopened.state);
   assert.equal(v.state.bans.blue.length + v.state.bans.red.length, 10);
   assert.equal(v.state.pickLog.length, 6);
-  const s3 = sse(`${base}/api/rooms/${room.code}/events?role=spectator`);
+  const s3 = sse(`${base}/api/rooms/${room.code}/events?role=spectator&k=${room.viewToken}`);
   assert.equal((await s3.next('state')).revision, 16);
   d.act('pharsa'); await pub(); // host makes another pick
   const [n1, n3] = await Promise.all([s1.next('state'), s3.next('state')]);
@@ -250,6 +250,18 @@ await test('Two spectators + reconnect: 5+5 bans and 6 picks restored on refresh
   assert.equal(v2.state.pickLog.length, 7);
   console.log(`      host r17 · spectator 1 r${n1.revision} · reopened spectator r${n3.revision} · ${v2.state.pickLog.length} picks`);
   s1.close(); s3.close();
+});
+
+await test('Spectator key — reads need the room key; a wrong, missing or other-room key reads nothing', async () => {
+  const a = await T.create(buildMatchState({ draft: makeDraft('RANKED_DRAFT'), me: hostMe(), profile: makeProfile() }));
+  const b = await T.create(buildMatchState({ draft: makeDraft('RANKED_DRAFT'), me: hostMe(), profile: makeProfile() }));
+  assert.ok(a.viewToken && a.viewToken !== b.viewToken);
+  assert.ok((await T.get(a.code, a.viewToken)).room, 'right key reads');
+  for (const k of [undefined, '', 'guess', b.viewToken]) assert.equal((await T.get(a.code, k)).room, null, `key ${k} must not read room A`);
+  const r = await fetch(`${base}/api/rooms/${a.code}/events?role=spectator&k=${b.viewToken}`);
+  assert.equal(r.status, 404, 'no event stream with another room key');
+  const raw = JSON.stringify((await T.get(a.code, a.viewToken)).room);
+  assert.ok(!raw.includes(a.hostToken) && !raw.includes(a.viewToken), 'reads never contain the host token or the key');
 });
 
 await test('Routing — /match/<code> serves the app; /api/config exposes only public keys', async () => {

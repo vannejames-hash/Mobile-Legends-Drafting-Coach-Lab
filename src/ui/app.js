@@ -40,6 +40,9 @@ const route = (() => {
   return { kind: 'local' };
 })();
 const storedToken = (code) => { try { return localStorage.getItem(`mldl.host.${code}`); } catch { return null; } };
+const storedViewKey = (code) => { try { return localStorage.getItem(`mldl.view.${code}`); } catch { return null; } };
+// spectator key: the #k=… part of a match link (never sent to any server log); the host keeps its own copy
+const viewKey = route.kind === 'match' ? (location.hash.match(/(?:^#|&)k=([A-Za-z0-9_-]+)/)?.[1] || storedViewKey(route.code)) : null;
 // ?spectate=1 opens a room read-only even in the host's own browser (test what spectators see)
 const hostToken = route.kind === 'match' && !new URLSearchParams(location.search).has('spectate') ? storedToken(route.code) : null;
 const MODE = route.kind === 'share' ? 'share' : route.kind === 'match' ? (hostToken ? 'host' : 'spectator') : 'local';
@@ -64,7 +67,8 @@ const ui = {
   lastSeenAction: 0, justUsed: null, justFilled: null, roleMenu: null, confirmReset: false,
   mode: MODE, readonly: VIEWER, heroPicker: false, shareUrl: null,
   room: {
-    code: route.kind === 'match' ? route.code : null, token: hostToken, status: null, watching: 0, transport: null, error: null,
+    code: route.kind === 'match' ? route.code : null, token: hostToken, viewKey, status: null, watching: 0, transport: null, error: null,
+    initialFetch: null, write: null,
     // sync diagnostics (debug panel: add ?debug=1 to the URL)
     revision: null, updatedAt: null, lastSync: null, channel: 'idle', lastError: null, applied: 0, ignored: 0,
   },
@@ -1302,7 +1306,7 @@ async function createMatch() {
   if (!T) { toast('Live rooms need the ML Draft Lab server or a Supabase project.'); return; }
   try {
     const room = await T.create(currentState());
-    try { localStorage.setItem(`mldl.host.${room.code}`, room.hostToken); } catch { /* host token kept for this tab only */ }
+    try { localStorage.setItem(`mldl.host.${room.code}`, room.hostToken); localStorage.setItem(`mldl.view.${room.code}`, room.viewToken); } catch { /* kept for this tab only */ }
     location.assign(`/match/${room.code}`);
   } catch (err) { toast(`Could not create a match: ${err.message}`); }
 }
@@ -1375,10 +1379,10 @@ async function publishNow() {
     if (r.ok) {
       ui.room.status = r.status || st.status;
       if (Number.isFinite(r.revision)) ui.room.revision = r.revision;
-      ui.room.lastSync = Date.now(); ui.room.lastError = null;
+      ui.room.lastSync = Date.now(); ui.room.lastError = null; ui.room.write = 'SUCCESS';
       roomLog(`published r${ui.room.revision ?? '?'} · ${st.status} · ${st.picks.length} picks · ${st.bans.filter((b) => b.hero).length} bans`);
     } else if (r.code === 409) { ui.room.status = 'COMPLETE'; toast('This match is complete and read-only for everyone.'); }
-    else { ui.room.lastError = r.error || 'network error'; roomLog('publish failed:', ui.room.lastError); toast(`Could not sync the match: ${ui.room.lastError}`); }
+    else { ui.room.lastError = r.error || 'network error'; ui.room.write = `FAIL: ${ui.room.lastError}`; roomLog('publish failed:', ui.room.lastError); toast(`Could not sync the match: ${ui.room.lastError}`); }
     renderHeader();
   } finally {
     publishing = false;
@@ -1394,13 +1398,18 @@ async function initRoom() {
   roomLog(`${ui.mode} · room ${code} · transport ${T?.kind || 'none'}`);
   if (!T) { ui.room.error = 'Live rooms are not available on this server.'; renderAll(); return; }
   // 1. FETCH the current state (a spectator joining late must see everything that already happened)
-  const { room, error } = await T.get(code);
-  if (error) { ui.room.error = `Could not load match ${code}: ${error}`; ui.room.lastError = error; renderAll(); }
-  else if (!room) { ui.room.error = `Match ${code} was not found (it may have expired).`; renderAll(); return; }
-  else applyRoom(room, 'join');
+  if (!ui.room.viewKey) {
+    ui.room.initialFetch = 'FAIL: no spectator key';
+    ui.room.error = 'This match link is missing its spectator key (#k=…). Ask the host for the full link from Copy link.';
+    roomLog('initial fetch: FAIL (no spectator key in the link)'); renderAll(); renderDebug(); return;
+  }
+  const { room, error } = await T.get(code, ui.room.viewKey);
+  if (error) { ui.room.initialFetch = `FAIL: ${error}`; ui.room.error = `Could not load match ${code}: ${error}`; ui.room.lastError = error; roomLog(`initial fetch: FAIL (${error})`); renderAll(); }
+  else if (!room) { ui.room.initialFetch = 'FAIL: not found'; ui.room.error = `Match ${code} was not found (it may have expired).`; roomLog('initial fetch: FAIL (not found)'); renderAll(); return; }
+  else { ui.room.initialFetch = 'SUCCESS'; roomLog(`initial fetch: SUCCESS r${room.revision}`); applyRoom(room, 'join'); }
   // 2. SUBSCRIBE to this room only; every (re)subscription fetches again, newer revisions are applied
   T.watch(code, {
-    role: ui.mode === 'host' ? 'host' : 'spectator', token: ui.room.token,
+    role: ui.mode === 'host' ? 'host' : 'spectator', token: ui.room.token, viewToken: ui.room.viewKey,
     onState: (r, why = 'realtime') => {
       if (VIEWER) { if (applyRoom(r, why)) ui.room.error = null; }
       else if (r.status !== ui.room.status) { ui.room.status = r.status; renderHeader(); }
@@ -1420,14 +1429,22 @@ function renderDebug() {
   const R = ui.room;
   const ago = R.lastSync ? `${Math.round((Date.now() - R.lastSync) / 1000)}s ago` : 'never';
   const conn = !R.transport ? 'not connected' : R.channel === 'SUBSCRIBED' ? 'connected' : R.channel.toLowerCase();
-  el.textContent = [
-    `${R.transport?.kind === 'supabase' ? 'Supabase' : R.transport?.kind === 'relay' ? 'Local relay' : 'Transport'} connection: ${conn}`,
-    ui.mode === 'host' ? `Room: ${R.code} (host)` : `Subscribed to: ${R.code}`,
-    `${ui.mode === 'host' ? 'Revision' : 'Current revision'}: ${R.revision ?? '—'} · ${R.status || '—'}`,
-    `Last sync: ${ago}`,
-    ui.mode === 'host' ? `Spectators: ${R.watching}` : `Applied ${R.applied} · ignored stale ${R.ignored}`,
+  el.textContent = (ui.mode === 'host' ? [
+    `${R.transport?.kind === 'supabase' ? 'Supabase' : R.transport?.kind === 'relay' ? 'Local relay' : 'Transport'}: ${conn}`,
+    `Room: ${R.code}`,
+    `Write: ${R.write || '—'}`,
+    `Revision: ${R.revision ?? '—'} · ${R.status || '—'}`,
+    `Last sync: ${ago} · spectators ${R.watching}`,
     R.lastError ? `Last error: ${R.lastError}` : '',
-  ].filter(Boolean).join('\n');
+  ] : [
+    `${R.transport?.kind === 'supabase' ? 'Supabase' : R.transport?.kind === 'relay' ? 'Local relay' : 'Transport'} ${R.transport ? 'connected' : 'not connected'}`,
+    `Room: ${R.code}`,
+    `Initial fetch: ${R.initialFetch || '…'}`,
+    `Realtime subscription: ${R.channel === 'SUBSCRIBED' ? 'SUBSCRIBED' : R.channel === 'CHANNEL_ERROR' || R.channel === 'TIMED_OUT' ? `ERROR (${R.channel})` : R.channel}`,
+    `Revision: ${R.revision ?? '—'} · ${R.status || '—'} · last sync ${ago}`,
+    `Applied ${R.applied} · ignored stale ${R.ignored}`,
+    R.lastError ? `Last error: ${R.lastError}` : '',
+  ]).filter(Boolean).join('\n');
 }
 if (DEBUG) setInterval(renderDebug, 1000);
 
@@ -1487,7 +1504,7 @@ document.addEventListener('click', (e) => {
     case 'my-hero': me.setHero(d.id || null); ui.heroPicker = false; renderAll(); break;
     case 'hero-picker': ui.heroPicker = !ui.heroPicker; renderAll(); break;
     case 'create-match': createMatch(); break;
-    case 'copy-link': copyText(`${location.origin}/match/${ui.room.code}`, 'Match link copied: send it to your friends.'); break;
+    case 'copy-link': copyText(`${location.origin}/match/${ui.room.code}#k=${ui.room.viewKey || ''}`, 'Match link copied: send it to your friends.'); break;
     case 'end-match': endMatch(); break;
     case 'share-final': shareFinal(); break;
     case 'hero': onHero(d.id); break;
