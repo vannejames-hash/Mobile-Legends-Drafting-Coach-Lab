@@ -134,3 +134,22 @@ export function newRoomCode(rand = Math.random) {
   for (let i = 0; i < 4; i++) s += CODE_ALPHABET[Math.floor(rand() * CODE_ALPHABET.length)];
   return `MLDL-${s}`;
 }
+
+// ------------------------------------------------------------------ ordering
+
+/**
+ * Should a viewer apply `incoming` on top of what it shows now? Rooms carry a server-assigned,
+ * monotonically increasing `revision` (every accepted host write gets the next one), so anything at or
+ * below the current revision is stale (a late or duplicate delivery) and is ignored. Without revisions
+ * (a database that has not run migration 002 yet) the update time decides.
+ */
+export function isNewer(incoming, current) {
+  if (!incoming) return false;
+  if (!current) return true;
+  const a = Number.isFinite(incoming.revision) ? incoming.revision : null;
+  const b = Number.isFinite(current.revision) ? current.revision : null;
+  if (a != null && b != null) return a > b;
+  const ta = Date.parse(incoming.updatedAt) || Number(incoming.updatedAt) || 0;
+  const tb = Date.parse(current.updatedAt) || Number(current.updatedAt) || 0;
+  return ta > tb || (ta === tb && incoming.status === 'COMPLETE' && current.status !== 'COMPLETE');
+}

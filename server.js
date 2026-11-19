@@ -34,7 +34,7 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
   const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
   const watching = (room) => [...room.clients].filter((c) => c.role === 'spectator').length;
   const send = (c, event, data) => { try { c.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`); } catch { /* client gone */ } };
-  const publicRoom = (room) => ({ code: room.code, status: room.status, state: room.state, watching: watching(room), updatedAt: room.updatedAt });
+  const publicRoom = (room) => ({ code: room.code, status: room.status, state: room.state, revision: room.revision, watching: watching(room), updatedAt: room.updatedAt });
   const broadcastState = (room) => { for (const c of room.clients) send(c, 'state', publicRoom(room)); };
   const broadcastPresence = (room) => { const n = watching(room); for (const c of room.clients) send(c, 'presence', { watching: n }); };
 
@@ -67,8 +67,8 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
       const code = newCode();
       const hostToken = randomBytes(18).toString('base64url');
       const now = Date.now();
-      rooms.set(code, { code, tokenHash: sha(hostToken), status: statusOf(body.state), state: { ...body.state, matchId: code }, createdAt: now, updatedAt: now, clients: new Set() });
-      return json(res, 201, { code, hostToken, status: rooms.get(code).status });
+      rooms.set(code, { code, tokenHash: sha(hostToken), status: statusOf(body.state), revision: 0, state: { ...body.state, matchId: code, revision: 0 }, createdAt: now, updatedAt: now, clients: new Set() });
+      return json(res, 201, { code, hostToken, status: rooms.get(code).status, revision: 0 });
     }
     const m = path.match(/^\/api\/rooms\/([^/]+)(\/events|\/end)?$/);
     if (!m) return json(res, 404, { error: 'not found' });
@@ -92,9 +92,9 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
     }
     if (m[2] === '/end' && req.method === 'POST') {
       if (!isHost(room, req)) return json(res, 403, { error: 'only the host can end this match' });
-      room.status = 'COMPLETE'; room.state = { ...room.state, status: 'COMPLETE' }; room.updatedAt = Date.now();
+      room.revision += 1; room.status = 'COMPLETE'; room.state = { ...room.state, status: 'COMPLETE', revision: room.revision }; room.updatedAt = Date.now();
       broadcastState(room);
-      return json(res, 200, { status: room.status });
+      return json(res, 200, { status: room.status, revision: room.revision });
     }
     if (!m[2] && req.method === 'GET') return json(res, 200, publicRoom(room));
     if (!m[2] && req.method === 'PUT') {
@@ -102,11 +102,12 @@ export function createAppServer({ root = ROOT, env = process.env } = {}) {
       if (room.status === 'COMPLETE') return json(res, 409, { error: 'this match is complete and read-only', status: room.status });
       const body = await readBody(req);
       if (!body.state || typeof body.state !== 'object') return json(res, 400, { error: 'state required' });
-      room.state = { ...body.state, matchId: code };
+      room.revision += 1; // every accepted host write gets the next revision; viewers drop anything older
+      room.state = { ...body.state, matchId: code, revision: room.revision };
       room.status = statusOf(body.state);
       room.updatedAt = Date.now();
       broadcastState(room);
-      return json(res, 200, { status: room.status });
+      return json(res, 200, { status: room.status, revision: room.revision });
     }
     return json(res, 405, { error: 'method not allowed' });
   }

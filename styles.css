@@ -1188,3 +1188,6 @@ body.viewer .slot-open, body.viewer .x, body.viewer .role-menu-btn { pointer-eve
   .plan-g > div:first-child { border-top: 0; }
   .room-chip { flex-wrap: wrap; }
 }
+
+/* temporary sync diagnostics (?debug=1) */
+.sync-debug { position: fixed; left: 10px; bottom: 10px; z-index: 60; margin: 0; padding: 8px 10px; max-width: 360px; white-space: pre-wrap; font: 11px/1.45 var(--mono); color: #CFE8D8; background: rgba(8, 14, 18, .92); border: 1px solid #2B3D47; border-radius: 8px; pointer-events: none; }

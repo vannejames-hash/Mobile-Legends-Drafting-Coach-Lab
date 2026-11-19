@@ -13,8 +13,8 @@ import { esc, portrait, roleIcon, starStr, toast, ROLE_NAME } from './components
 import { openPoolEditor } from './poolEditor.js';
 import { createPlayerContext } from '../playerContext.js';
 import { buildPersonalGuide } from '../personalGuide.js';
-import { buildMatchState, applyMatchState, encodeShare, decodeShare, sharedProfile, memoryStorage, CODE_RE } from '../matchState.js';
-import { connectTransport } from '../realtime.js';
+import { buildMatchState, applyMatchState, encodeShare, decodeShare, sharedProfile, memoryStorage, CODE_RE, isNewer } from '../matchState.js';
+import { connectTransport, log as roomLog } from '../realtime.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -40,7 +40,8 @@ const route = (() => {
   return { kind: 'local' };
 })();
 const storedToken = (code) => { try { return localStorage.getItem(`mldl.host.${code}`); } catch { return null; } };
-const hostToken = route.kind === 'match' ? storedToken(route.code) : null;
+// ?spectate=1 opens a room read-only even in the host's own browser (test what spectators see)
+const hostToken = route.kind === 'match' && !new URLSearchParams(location.search).has('spectate') ? storedToken(route.code) : null;
 const MODE = route.kind === 'share' ? 'share' : route.kind === 'match' ? (hostToken ? 'host' : 'spectator') : 'local';
 const VIEWER = MODE === 'share' || MODE === 'spectator';
 // viewers never touch their own saved pool / role: the host's arrive with the shared state
@@ -62,7 +63,11 @@ const ui = {
   timerLeft: CONFIG.stepSeconds, paused: false, stepKey: null,
   lastSeenAction: 0, justUsed: null, justFilled: null, roleMenu: null, confirmReset: false,
   mode: MODE, readonly: VIEWER, heroPicker: false, shareUrl: null,
-  room: { code: route.kind === 'match' ? route.code : null, token: hostToken, status: null, watching: 0, transport: null, error: null },
+  room: {
+    code: route.kind === 'match' ? route.code : null, token: hostToken, status: null, watching: 0, transport: null, error: null,
+    // sync diagnostics (debug panel: add ?debug=1 to the URL)
+    revision: null, updatedAt: null, lastSync: null, channel: 'idle', lastError: null, applied: 0, ignored: 0,
+  },
 };
 let applying = false; // true while a shared state is being loaded (never re-published)
 let ctx = null;
@@ -1306,7 +1311,7 @@ async function endMatch() {
   const T = ui.room.transport;
   if (!T) return;
   const r = await T.end(ui.room.code, ui.room.token);
-  if (r.ok) { ui.room.status = 'COMPLETE'; toast('Match ended: the room is now read-only.'); renderHeader(); } else toast(`Could not end the match: ${r.error}`);
+  if (r.ok) { ui.room.status = 'COMPLETE'; if (Number.isFinite(r.revision)) ui.room.revision = r.revision; toast('Match ended: the room is now read-only.'); renderHeader(); } else toast(`Could not end the match: ${r.error}`);
 }
 
 function shareFinal() {
@@ -1315,11 +1320,25 @@ function shareFinal() {
   copyText(url, 'Read-only link to this final draft copied.');
 }
 
-/** Apply a room's shared state (spectators always; the host once, to resume after a refresh). */
-function applyRoom(room) {
-  ui.room.status = room.status;
+/**
+ * Apply a room's shared state (spectators: every newer revision; the host: once, to resume after a refresh).
+ * Stale or duplicate deliveries (revision ≤ the one shown) are ignored.
+ */
+function applyRoom(room, why = 'fetch') {
+  const R = ui.room;
+  if (!room?.state) return false;
+  if (!isNewer(room, R.revision == null && R.updatedAt == null ? null : { revision: R.revision, updatedAt: R.updatedAt, status: R.status })) {
+    R.ignored++;
+    if (DEBUG) roomLog(`ignored ${why} r${room.revision} (showing r${R.revision})`);
+    return false;
+  }
+  R.status = room.status;
+  R.revision = Number.isFinite(room.revision) ? room.revision : R.revision;
+  R.updatedAt = room.updatedAt ?? R.updatedAt;
+  R.lastSync = Date.now();
+  R.applied++;
+  roomLog(`applied ${why} r${R.revision} · ${room.status} · ${room.state.picks?.length || 0} picks · ${(room.state.bans || []).filter((b) => b.hero).length} bans`);
   const s = room.state;
-  if (!s) return;
   applying = true;
   if (VIEWER) {
     profile.replace(s.pool);
@@ -1329,21 +1348,42 @@ function applyRoom(room) {
   applyMatchState(draft, s);
   applying = false;
   renderAll();
+  return true;
 }
 
 let pubTimer = null;
-/** Host: publish the shared state after every change (debounced; the room is the single source for spectators). */
+let publishing = false;
+let publishAgain = false;
+/**
+ * Host: publish the canonical state after every change. Writes are SERIALIZED (one request in flight,
+ * then the latest state), so the server's revision order always matches the host's action order.
+ */
 function schedulePublish() {
   if (ui.mode !== 'host' || !ui.room.transport || applying || ui.room.status === 'COMPLETE') return;
   clearTimeout(pubTimer);
-  pubTimer = setTimeout(async () => {
-    const st = currentState();
+  pubTimer = setTimeout(publishNow, 120);
+}
+async function publishNow() {
+  if (publishing) { publishAgain = true; return; }
+  const st = currentState();
+  const key = JSON.stringify({ ...st, updatedAt: 0 });
+  if (key === publishNow.last) return; // nothing changed since the last accepted write
+  publishing = true;
+  try {
     const r = await ui.room.transport.update(ui.room.code, ui.room.token, st);
-    if (r.ok) ui.room.status = r.status || st.status;
-    else if (r.code === 409) { ui.room.status = 'COMPLETE'; toast('This match is complete and read-only for everyone.'); }
-    else toast(`Could not sync the match: ${r.error || 'network error'}`);
+    if (r.ok) publishNow.last = key;
+    if (r.ok) {
+      ui.room.status = r.status || st.status;
+      if (Number.isFinite(r.revision)) ui.room.revision = r.revision;
+      ui.room.lastSync = Date.now(); ui.room.lastError = null;
+      roomLog(`published r${ui.room.revision ?? '?'} · ${st.status} · ${st.picks.length} picks · ${st.bans.filter((b) => b.hero).length} bans`);
+    } else if (r.code === 409) { ui.room.status = 'COMPLETE'; toast('This match is complete and read-only for everyone.'); }
+    else { ui.room.lastError = r.error || 'network error'; roomLog('publish failed:', ui.room.lastError); toast(`Could not sync the match: ${ui.room.lastError}`); }
     renderHeader();
-  }, 150);
+  } finally {
+    publishing = false;
+    if (publishAgain) { publishAgain = false; publishNow(); }
+  }
 }
 
 async function initRoom() {
@@ -1351,16 +1391,45 @@ async function initRoom() {
   if (!CODE_RE.test(code)) { ui.room.error = `“${code}” is not a valid match code.`; renderAll(); return; }
   const T = await connectTransport();
   ui.room.transport = T;
+  roomLog(`${ui.mode} · room ${code} · transport ${T?.kind || 'none'}`);
   if (!T) { ui.room.error = 'Live rooms are not available on this server.'; renderAll(); return; }
-  const room = await T.get(code);
-  if (!room) { ui.room.error = `Match ${code} was not found (it may have expired).`; renderAll(); return; }
-  applyRoom(room);
+  // 1. FETCH the current state (a spectator joining late must see everything that already happened)
+  const { room, error } = await T.get(code);
+  if (error) { ui.room.error = `Could not load match ${code}: ${error}`; ui.room.lastError = error; renderAll(); }
+  else if (!room) { ui.room.error = `Match ${code} was not found (it may have expired).`; renderAll(); return; }
+  else applyRoom(room, 'join');
+  // 2. SUBSCRIBE to this room only; every (re)subscription fetches again, newer revisions are applied
   T.watch(code, {
     role: ui.mode === 'host' ? 'host' : 'spectator', token: ui.room.token,
-    onState: (r) => { if (VIEWER) applyRoom(r); else if (r.status !== ui.room.status) { ui.room.status = r.status; renderHeader(); } },
+    onState: (r, why = 'realtime') => {
+      if (VIEWER) { if (applyRoom(r, why)) ui.room.error = null; }
+      else if (r.status !== ui.room.status) { ui.room.status = r.status; renderHeader(); }
+    },
     onPresence: (n) => { ui.room.watching = n; renderHeader(); },
+    onStatus: (x) => { if (x.channel) ui.room.channel = x.channel; if (x.error) ui.room.lastError = x.error; renderDebug(); },
   });
+  renderDebug();
 }
+
+// ------------------------------------------------------------------ sync diagnostics (temporary: ?debug=1)
+const DEBUG = new URLSearchParams(location.search).has('debug') || (() => { try { return localStorage.getItem('mldl.debug') === '1'; } catch { return false; } })();
+function renderDebug() {
+  if (!DEBUG || (ui.mode !== 'host' && ui.mode !== 'spectator')) return;
+  let el = document.getElementById('sync-debug');
+  if (!el) { el = document.createElement('pre'); el.id = 'sync-debug'; el.className = 'sync-debug'; document.body.appendChild(el); }
+  const R = ui.room;
+  const ago = R.lastSync ? `${Math.round((Date.now() - R.lastSync) / 1000)}s ago` : 'never';
+  const conn = !R.transport ? 'not connected' : R.channel === 'SUBSCRIBED' ? 'connected' : R.channel.toLowerCase();
+  el.textContent = [
+    `${R.transport?.kind === 'supabase' ? 'Supabase' : R.transport?.kind === 'relay' ? 'Local relay' : 'Transport'} connection: ${conn}`,
+    ui.mode === 'host' ? `Room: ${R.code} (host)` : `Subscribed to: ${R.code}`,
+    `${ui.mode === 'host' ? 'Revision' : 'Current revision'}: ${R.revision ?? '—'} · ${R.status || '—'}`,
+    `Last sync: ${ago}`,
+    ui.mode === 'host' ? `Spectators: ${R.watching}` : `Applied ${R.applied} · ignored stale ${R.ignored}`,
+    R.lastError ? `Last error: ${R.lastError}` : '',
+  ].filter(Boolean).join('\n');
+}
+if (DEBUG) setInterval(renderDebug, 1000);
 
 // ------------------------------------------------------------------ actions
 

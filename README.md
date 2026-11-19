@@ -156,8 +156,12 @@ If `SUPABASE_URL` / `SUPABASE_ANON_KEY` are set, the local server also uses Supa
 ### Deploy (GitHub → Vercel)
 
 1. Push the repo to GitHub and import it in Vercel. `vercel.json` sets framework *Other*, no build step and the project root as output. It also rewrites `/match/:code` to the app and `/assets/*` to `public/assets/*`.
-2. In Supabase: SQL editor → run `supabase/schema.sql`.
+2. In Supabase: SQL editor → run `supabase/schema.sql`, then `supabase/migrations/002_live_sync.sql`. The migration is non-destructive: it adds read grants for spectators, a `revision` counter and the realtime publication.
 3. In Vercel → Settings → Environment Variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (see `.env.example`).
 4. `api/config.js` serves those two public values to the app.
+
+**Sync model**: Supabase is the source of truth in production. Every accepted host write (host-token-checked RPC) gets the next `revision`. Spectators fetch the room, subscribe to that room's row changes, and fetch again on every (re)subscription. They also re-fetch when the page becomes visible or the network returns, and poll slowly only while realtime is disconnected. A revision at or below the one shown is ignored as stale.
+
+**Diagnostics**: add `?debug=1` to a match URL to show connection, room, revision and last-sync time (console lines are prefixed `[room]`). Add `?spectate=1` to open your own room read-only as a spectator.
 
 Tests: `npm test` runs the room relay end-to-end in-process (`tests/sharing.test.js`): create, join, live picks and bans, read-only spectators, refresh, room isolation and completed rooms.
