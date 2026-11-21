@@ -50,6 +50,7 @@ const VIEWER = MODE === 'share' || MODE === 'spectator';
 // viewers never touch their own saved pool / role: the host's arrive with the shared state
 const profile = VIEWER ? sharedProfile({}) : createPlayerProfile();
 const formatData = compileFormats(await (await fetch(CONFIG.draftFormatsUrl, { cache: 'no-store' })).json());
+const itemCatalog = await fetch(CONFIG.itemsUrl, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 const me = createPlayerContext({ lanesOf: (id) => db.get(id)?.lanes, storage: VIEWER ? memoryStorage() : globalThis.localStorage });
 const draft = createDraftState({
   lanesOf: (id) => db.get(id)?.lanes, formats: formatData.formats, format: formatData.defaultId, heroIds: db.all.map((h) => h.id),
@@ -117,7 +118,7 @@ function buildContext() {
   const contrast = recs?.kind === 'pick' && recs.isAlly && recs.forYou[0] && recs.theoretical[0]
     ? engine.contrastPicks(recs.forYou[0], recs.theoretical[0]) : null;
   const rating = complete ? engine.rateDraft(draft, allySide, { myHero: me.hero }) : null;
-  const analysis = complete ? analyzeCompletedDraft({ db, ally: allyM, enemy: enemyM, rating, myRole: me.role, myHero: me.hero, isAvailable: (id) => !draft.usedBy(id) }) : null;
+  const analysis = complete ? analyzeCompletedDraft({ db, ally: allyM, enemy: enemyM, rating, myRole: me.role, myHero: me.hero, isAvailable: (id) => !draft.usedBy(id), items: itemCatalog }) : null;
   // Role-first picking: on our pick turn, recommend for one team role (selected, or the suggested next role).
   let roleRec = null;
   let suggested = [];
@@ -391,6 +392,7 @@ function boardCard(e, personal, big = false) {
     <span class="bc-main">
       <b class="bc-name">${esc(e.hero.name)}${e.form ? ` <small>${esc(e.form.label)}</small>` : ''}</b>
       <span class="bc-tags">${e.tags.map(esc).join(' · ')}</span>
+      ${e.signature ? '<span class="sig-badge">★ Your signature</span>' : ''}
       ${e.stars || (personal && big) || e.confidence.level === 'Provisional' ? `<span class="bc-sub">${e.stars ? `<span class="stars">${'★'.repeat(e.stars)}</span>` : ''}${poolBadge(e, personal)}${e.confidence.level === 'Provisional' ? '<span class="pb prov">Provisional data</span>' : ''}</span>` : ''}
     </span>
     <span class="bc-fit"><b>${e.fit.toFixed(1)}</b><small>${e.label}</small>${deltaTag(e)}</span>
@@ -398,6 +400,24 @@ function boardCard(e, personal, big = false) {
     <span class="bc-why">${esc(e.why)}</span>` : ''}
     ${cmpBtn(e.hero.id)}
     ${big && e.rank <= 5 ? `<kbd>${e.rank}</kbd>` : ''}
+  </div>`;
+}
+
+/** YOUR SIGNATURE: shown on your own role even outside the top 5; its Draft Fit is never boosted. */
+function signatureHTML(B) {
+  const S = B.signature;
+  if (!S || S.inTop5) return '';
+  if (S.unavailable) return `<p class="sig-off hint">★ Your signature ${esc(db.get(S.heroId)?.name || '')} is ${esc(S.unavailable)}.</p>`;
+  const e = S.entry;
+  return `<div class="sig-row">
+    <div class="sig-card t-${e.tone}" role="button" tabindex="0" data-act="role-pick" data-role="${e.role}" data-id="${e.hero.id}" data-key="${e.hero.id}">
+      <span class="snap-l">★ Your signature</span>
+      ${portrait(e.hero, 'pt-bcb')}
+      <span class="sig-main"><b>${esc(e.hero.name)}</b><span class="stars">${'★'.repeat(S.stars)}</span> <small>${esc(STAR_LABEL[S.stars] || '')}</small>
+        ${S.lowFit ? '<span class="pb prov">Low draft fit · High player fit</span>' : ''}</span>
+      <span class="sig-nums"><span><small>Draft fit</small><b class="df">${e.fit.toFixed(1)}</b></span><span><small>Player fit</small><b>${S.playerFit.toFixed(1)}</b></span><span><small>Rank</small><b>#${e.rank}</b></span></span>
+    </div>
+    <div class="sig-why"><span class="snap-l">Why consider your signature?</span><p>${esc(S.why)}</p></div>
   </div>`;
 }
 
@@ -420,6 +440,13 @@ function identityHTML({ compact = false } = {}) {
       </div>
       ${ro ? '' : `<button class="btn sm" data-act="hero-picker" ${role ? '' : 'disabled'} aria-expanded="${ui.heroPicker}">${h ? 'Change hero' : 'Choose hero'}</button>`}
     </div>
+    ${(() => {
+      if (!role) return '';
+      const sig = (profile.signature && profile.signature(role)) || profile.entries(role).filter((x) => x.stars >= 4).sort((x, y) => y.stars - x.stars)[0]?.id;
+      const sh = sig && db.get(sig);
+      const canSet = !ro && h && profile.stars(h.id, role) >= 1 && h.id !== sig && profile.setSignature;
+      return sh || canSet ? `<p class="id-sig">${sh ? `★ Signature ${esc(ROLE_NAME[role])}: <b>${esc(sh.name)}</b>` : ''}${canSet ? ` <button class="link" data-act="set-signature" data-role="${role}" data-id="${h.id}">Make ${esc(h.name)} my signature</button>` : ''}</p>` : '';
+    })()}
     ${ui.heroPicker && !ro && role ? heroPickerHTML(role) : ''}
   </div>`;
 }
@@ -529,6 +556,7 @@ function renderRoleRecs(el) {
     <section class="desk-sec best">
       <div class="desk-h"><h2>Best fit for ${esc(R)}</h2><span class="hint">Hover a hero for the full reasoning · 1–5 to pick · + to compare</span></div>
       <div class="rb-grid big">${best.map((e) => boardCard(e, B.personal, true)).join('')}</div>
+      ${signatureHTML(B)}
       <div class="foryou">
         ${pickLine('Best overall', B.bestOverall)}
         ${B.bestForYou ? pickLine('Best for you', B.bestForYou, `<span class="stars">${'★'.repeat(B.bestForYou.stars)}</span>`) : `<span class="hint">${poolEmpty ? `No ${esc(R)} heroes in your pool. <button class="link" data-act="pool">Add some in My pool</button>` : `None of your ${esc(R)} pool heroes is available.`}</span>`}
@@ -1036,6 +1064,39 @@ function mySelects() {
   </span>`;
 }
 
+/** ROLE MATCHUP: what each role's hero gives its team in THIS draft (not a 1v1 claim). */
+function roleMatchupHTML(M) {
+  if (!M) return '';
+  const cell = (label, row, who) => `<div class="rm-c"><span class="snap-l">${label}</span>${row ? `<b>${roleDot(row.role)}${ROLE_NAME[row.role]}</b><small>${esc((who === 'them' ? row.them : row.us).name)}</small>` : '<b class="faint">None</b>'}</div>`;
+  const sign = (e) => (e > 0 ? `+${e.toFixed(1)}` : e < 0 ? `−${Math.abs(e).toFixed(1)}` : '0.0');
+  return `<div class="rm" aria-label="Role matchup">
+    <h3 class="rm-h">Role matchup <span class="hint">what each role's hero is worth to its team in this draft</span></h3>
+    <div class="rm-sum">${cell('Our strongest role', M.strongest, 'us')}${cell('Enemy strongest role', M.enemyStrongest, 'them')}${cell('Biggest disadvantage', M.disadvantage, 'us')}${cell('Decisive role', M.decisive, 'us')}</div>
+    <p class="rm-line">${esc(M.sentence)}</p>
+    <div class="rm-t">${M.rows.map((x) => `<div class="rm-r e-${x.tone}" title="${esc(x.evidence.join(' · '))}">
+      <span class="rm-role">${roleDot(x.role)}${ROLE_NAME[x.role]}</span>
+      <span class="rm-h1">${portrait(x.us, 'pt-chip')}<b>${esc(x.us.name)}</b></span>
+      <span class="rm-edge"><b>${sign(x.edge)}</b><small>${esc(x.label)}</small></span>
+      <span class="rm-h2"><b>${esc(x.them.name)}</b>${portrait(x.them, 'pt-chip')}</span>
+      <span class="rm-why">${esc(x.reason)}</span></div>`).join('')}</div>
+  </div>`;
+}
+
+/** ITEMIZATION PRIORITIES (inside Your role): traits, at most three catalog items, a warning when it matters. */
+function itemsHTML(I) {
+  if (!I) return '';
+  const stars = (n) => `<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(5 - n)}</span></span>`;
+  return `<div class="itm" aria-label="Itemization priorities">
+    <h3 class="rm-h">Itemization priorities <span class="hint">what this enemy draft makes you adapt around, not a full build</span></h3>
+    ${I.traits.length ? `<div class="itm-traits">${I.traits.map((t) => `<span class="itm-t" title="${esc(t.evidence)}">${esc(t.label)} ${stars(t.stars)}</span>`).join('')}</div>` : ''}
+    ${I.items.length ? `<ol class="itm-list">${I.items.map((x) => `<li>
+        <div class="itm-h"><b>${esc(x.item.name)}</b><span class="faint">${esc(x.label)}</span>${`<span class="prio p-${x.priority.toLowerCase()}">${x.priority}</span>`}</div>
+        <p>${esc(x.why)}</p><p class="itm-when"><span>Buy when</span> ${esc(x.when)}</p></li>`).join('')}</ol>` : `<p class="itm-none">${esc(I.none)}</p>`}
+    ${I.warning ? `<p class="itm-warn">⚠ ${esc(I.warning)}</p>` : ''}
+    ${I.catalogVersion ? `<p class="itm-src">Item catalog ${esc(I.catalogVersion)} · check in-game details after a patch</p>` : ''}
+  </div>`;
+}
+
 /** COACHING LAB: scan (snapshot + 30-second plan) → understand (modules) → drill down (Deep Analysis). */
 function renderPostDraft() {
   const el = $('postdraft');
@@ -1114,23 +1175,23 @@ function renderPostDraft() {
       </div>
     </section>
 
-    <section class="lab-sec won">
-      <h2 class="lab-h">How this game is won</h2>
-      <div class="won-g">
-        <div><span class="snap-l c-ally">Our win condition</span><p>${esc(R.win.primary.text)}</p><small>Also: ${esc(R.win.secondary.text)}</small></div>
-        <div><span class="snap-l c-enemy">Enemy win condition</span><p>${esc(R.win.enemy.text)}</p><small>We lose if: ${esc(R.win.failure.text)}</small></div>
-        <div class="won-d"><span class="snap-l">Decisive factor</span><p>${esc(R.clash.decisive)}</p></div>
-      </div>
-    </section>
-
     <section class="lab-sec">
       <h2 class="lab-h">Draft matchup <span class="hint">${esc(R.clash.pair)}</span></h2>
       <div class="mu">
         ${['ally', 'enemy'].map((side) => { const x = R.identity[side]; return `<div class="mu-side ${side}"><span class="snap-l">${side === 'ally' ? 'Our draft' : 'Enemy draft'}</span><h3>${esc(x.primary)}</h3>
           <dl><div><dt>Secondary</dt><dd>${esc(x.secondary || '—')}</dd></div><div><dt>Power curve</dt><dd>${esc(x.curve)}</dd></div><div class="w"><dt>Preferred fight</dt><dd>${esc(x.fight)}</dd></div></dl></div>`; }).join('<span class="vs" aria-hidden="true">vs</span>')}
       </div>
-      <p class="mu-clash">${esc(R.clash.decider)}</p>
-      ${R.clash.points.length ? `<ul class="mu-pts">${R.clash.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      <div class="won-g">
+        <div><span class="snap-l c-ally">Our win condition</span><p>${esc(R.win.primary.text)}</p></div>
+        <div><span class="snap-l c-enemy">Enemy win condition</span><p>${esc(R.win.enemy.text)}</p></div>
+        <div class="won-d"><span class="snap-l">Decisive factor</span><p>${esc(R.clash.decisive)}</p></div>
+      </div>
+      ${roleMatchupHTML(R.roleMatchup)}
+      <details class="more-clash"><summary>Why: the key clash, secondary route and failure condition</summary>
+        <p class="mu-clash">${esc(R.clash.decider)}</p>
+        ${R.clash.points.length ? `<ul class="mu-pts">${R.clash.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+        <p class="mu-sub"><b>Secondary route:</b> ${esc(R.win.secondary.text)} <b>We lose if:</b> ${esc(R.win.failure.text)}</p>
+      </details>
     </section>
 
     <section class="lab-sec trio">
@@ -1144,10 +1205,10 @@ function renderPostDraft() {
         ${[['#1 target', R.targets.first], ['#2 target', R.targets.second], ["Don't prioritize", R.targets.avoid]].filter(([, t]) => t).map(([l, t], i) => `<div class="tg ${i === 2 ? 'avoid' : ''}">${portrait(t.hero, 'pt-tg')}<div><span class="snap-l">${l}</span><b>${esc(t.hero.name)}</b><p>${esc(t.short || t.why)}</p></div></div>`).join('')}</div>
     </section>
 
-    <section class="lab-sec sw2">
-      <div><h2 class="lab-h">Our strengths</h2><ul class="chk good">${R.strengths.map((x) => `<li><b>${esc(x.text)}</b>${x.detail ? ` <span>${esc(x.detail)}</span>` : ''}</li>`).join('') || '<li class="faint">No standout strength</li>'}</ul></div>
-      <div><h2 class="lab-h">Our weaknesses</h2><ul class="chk bad">${R.weaknesses.map((x) => `<li><b>${esc(x.text)}</b>${x.detail ? ` <span>${esc(x.detail)}</span>` : ''}</li>`).join('') || '<li class="faint">No structural weakness</li>'}</ul></div>
-      <div class="comp"><span class="snap-l">Compensation</span><p>${esc(R.compensate)}</p></div>
+    <section class="lab-sec sw3">
+      <div class="sw-row"><span class="snap-l">Strengths</span>${R.strengths.slice(0, 3).map((x) => `<span class="swc good" title="${esc(x.evidence.join(' · '))}">✓ ${esc(x.text)}${x.detail ? `<small>${esc(x.detail)}</small>` : ''}</span>`).join('') || '<span class="faint">No standout strength</span>'}</div>
+      <div class="sw-row"><span class="snap-l">Weaknesses</span>${R.weaknesses.slice(0, 3).map((x) => `<span class="swc bad" title="${esc(x.evidence.join(' · '))}">⚠ ${esc(x.text)}${x.detail ? `<small>${esc(x.detail)}</small>` : ''}</span>`).join('') || '<span class="faint">No structural weakness</span>'}</div>
+      ${R.weaknesses.length ? `<p class="sw-comp"><span class="snap-l">Compensation</span>${esc(R.compensate)}</p>` : ''}
     </section>
 
     <section class="lab-sec you" id="your-role">
@@ -1159,12 +1220,14 @@ function renderPostDraft() {
           <div class="w"><dt>Your job</dt><dd>${esc(P.job)}</dd></div>
           <div><dt>Priority target</dt><dd>${P.target ? `<b>${esc(P.target.hero)}</b>` : '—'}</dd></div>
           <div><dt>Best timing</dt><dd>${esc(P.timing || '—')}</dd></div>
-          <div><dt>What enables you</dt><dd>${esc(P.enables.join('; '))}</dd></div>
-          <div><dt>What limits you</dt><dd>${esc(P.limits.join('; '))}</dd></div>
           <div><dt>Avoid</dt><dd>${esc(P.avoid)}</dd></div>
-          <div><dt>Why you matter</dt><dd>${esc(P.whyYouMatter || '—')}</dd></div>
+          <div class="w"><dt>Why you matter</dt><dd>${esc(P.whyYouMatter || '—')}</dd></div>
         </dl>
-      </div>` : `<p class="hint">${ui.readonly ? 'The host has not set a role and hero.' : 'Pick your role and hero to get your job in this exact draft.'}</p>`}
+      </div>
+      <details class="you-more"><summary>What enables and limits ${esc(P.hero.name)}</summary>
+        <dl class="you-dl"><div><dt>What enables you</dt><dd>${esc(P.enables.join('; '))}</dd></div><div><dt>What limits you</dt><dd>${esc(P.limits.join('; '))}</dd></div></dl>
+      </details>
+      ${itemsHTML(P.items)}` : `<p class="hint">${ui.readonly ? 'The host has not set a role and hero.' : 'Pick your role and hero to get your job in this exact draft.'}</p>`}
       ${canEdit ? `<details class="you-edit" ${P ? '' : 'open'}><summary>Change role or hero</summary>${identityHTML({ compact: true })}</details>` : ''}
     </section>
 
@@ -1229,6 +1292,7 @@ function renderAll() {
   }
   playFlip('#recs .rec', recRects);
   if (ui.readonly) { $('grid').hidden = true; $('filterbar').hidden = true; }
+  $('quickbar').hidden = ui.readonly || (ctx.complete && !ctx.step?.manual);
   document.body.classList.toggle('viewer', ui.readonly);
   schedulePublish();
 }
@@ -1294,7 +1358,7 @@ for (const zone of ['grid', 'recs']) {
 // ------------------------------------------------------------------ rooms + sharing
 
 /** Actions a spectator / share viewer may never trigger (everything that changes the draft or the host's context). */
-const MUTATING = new Set(['hero', 'slot', 'role-menu', 'set-role', 'auto-role', 'ban-slot', 'remove', 'start-over', 'reset', 'no-ban', 'role-pick', 'side', 'undo', 'pool', 'my-role', 'my-hero', 'hero-picker', 'create-match', 'end-match', 'show-grid']);
+const MUTATING = new Set(['set-signature', 'hero', 'slot', 'role-menu', 'set-role', 'auto-role', 'ban-slot', 'remove', 'start-over', 'reset', 'no-ban', 'role-pick', 'side', 'undo', 'pool', 'my-role', 'my-hero', 'hero-picker', 'create-match', 'end-match', 'show-grid']);
 
 async function copyText(text, msg) {
   try { await navigator.clipboard.writeText(text); toast(msg); } catch { window.prompt('Copy this link:', text); }
@@ -1454,10 +1518,17 @@ function onHero(id) {
   if (ui.readonly) return;
   // Legality is format-specific (e.g. a blind ranked wave allows a double ban), so ask the engine.
   const can = draft.canAct(id);
+  const y = window.scrollY; // the draft desk stays exactly where the user is looking
   if (!can.ok || !draft.act(id)) { toast(can.reason || 'That action is not available right now.'); return; }
   if (ui.q) { ui.q = ''; $('search').value = ''; renderGrid(); }
-  $('search').blur(); // free the keyboard for 1–4 shortcuts and type-to-search
+  if (document.activeElement === $('search')) $('search').blur(); // free the keyboard for shortcuts
   showPreview.last = null;
+  keepScroll(y);
+}
+/** Restore the scroll position after a re-render (twice: now and after layout settles). */
+function keepScroll(y) {
+  window.scrollTo({ top: y, behavior: 'instant' });
+  requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }));
 }
 
 /** Select a hero FOR a role: the pick is logged with that role (manual), then normal flow continues. */
@@ -1503,6 +1574,7 @@ document.addEventListener('click', (e) => {
     case 'my-role': me.setRole(d.role); ui.heroPicker = !me.hero; renderAll(); break; // no hero yet → open the picker
     case 'my-hero': me.setHero(d.id || null); ui.heroPicker = false; renderAll(); break;
     case 'hero-picker': ui.heroPicker = !ui.heroPicker; renderAll(); break;
+    case 'set-signature': profile.setSignature?.(d.role, d.id); toast(`${db.get(d.id).name} is now your signature ${ROLE_NAME[d.role]} hero.`); break;
     case 'create-match': createMatch(); break;
     case 'copy-link': copyText(`${location.origin}/match/${ui.room.code}#k=${ui.room.viewKey || ''}`, 'Match link copied: send it to your friends.'); break;
     case 'end-match': endMatch(); break;
@@ -1564,6 +1636,40 @@ $('grid').addEventListener('contextmenu', (e) => {
   else { const r = ROLES.includes(ui.role) && h.lanes.includes(ui.role) ? ui.role : h.primaryLane; profile.set(r, h.id, { stars: 3 }); toast(`${h.name} added to your ${ROLE_NAME[r]} pool (★★★)`); }
 });
 
+// ------------------------------------------------------------------ quick pick (search → Enter → next)
+const qp = $('quickpick');
+function quickMatches() {
+  const q = qp.value.trim();
+  if (!q) return [];
+  return db.search(q).filter((h) => draft.canAct(h.id).ok).slice(0, 6);
+}
+function renderQuick() {
+  const list = quickMatches();
+  $('qpResults').innerHTML = qp.value.trim()
+    ? list.map((h, i) => `<button class="qp-hit ${i === 0 ? 'first' : ''}" data-act="qp-pick" data-id="${h.id}">${portrait(h, 'pt-qp')}<span>${esc(h.name)}</span>${i === 0 ? '<kbd>Enter</kbd>' : ''}</button>`).join('') || '<span class="qp-none">No available hero matches</span>'
+    : '';
+}
+function commitQuick(id) {
+  const y = window.scrollY;
+  onHero(id);
+  qp.value = ''; renderQuick();
+  qp.focus({ preventScroll: true }); // ready for the next name
+  keepScroll(y);
+}
+qp.addEventListener('input', renderQuick);
+qp.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // never submit / scroll
+    const first = quickMatches()[0];
+    if (first) commitQuick(first.id);
+    else if (qp.value.trim()) toast('No available hero matches that name.');
+  } else if (e.key === 'Escape') { qp.value = ''; renderQuick(); qp.blur(); }
+});
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act="qp-pick"]');
+  if (b) { e.stopPropagation(); commitQuick(b.dataset.id); }
+}, true);
+
 const search = $('search');
 search.addEventListener('input', () => { ui.q = search.value; renderGrid(); });
 search.addEventListener('keydown', (e) => {
@@ -1597,7 +1703,10 @@ document.addEventListener('keydown', (e) => {
     if (r) { if (ctx.roleRec) onRolePick(r.hero.id, ctx.roleRec.role); else onHero(r.hero.id); e.preventDefault(); }
     return;
   }
-  if (e.key.length === 1 && /[a-z.\-']/i.test(e.key)) search.focus(); // keystroke lands in search
+  if (e.key.length === 1 && /[a-z.\-']/i.test(e.key)) { // keystroke lands in quick pick, without scrolling the page
+    const target = !$('quickbar').hidden ? qp : search;
+    target.focus({ preventScroll: true });
+  }
 });
 
 setInterval(() => {

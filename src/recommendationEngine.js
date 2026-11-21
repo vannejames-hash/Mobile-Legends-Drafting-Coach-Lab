@@ -713,7 +713,20 @@ export function createRecommendationEngine({ db, meta, profile }) {
     // an off-pool hero that is dramatically better than anything you play here
     const compelling = personal && forYou && top && top.stars < 2 && top.fitRaw - forYou.fitRaw >= 1.5
       ? { hero: top.hero, fit: top.fit, gap: round1(top.fitRaw - forYou.fitRaw), why: top.why } : null;
-    const board = { role, personal, entries, sections, bestOverall: top, bestForYou: forYou, forYouNote, compelling, need, weights: w, ceilings: ceil, calibration: CALIBRATION_NOTE };
+    // YOUR SIGNATURE: always visible on your own role, never boosted (its Draft Fit is the same number as everyone's)
+    let signature = null;
+    const sigId = personal ? signatureFor(role) : null;
+    if (sigId) {
+      const e = entries.find((x) => x.hero.id === sigId);
+      if (e) {
+        e.signature = true;
+        signature = { entry: e, inTop5: e.rank <= 5, stars: e.stars, playerFit: round1(e.scores.playerFit * 10), lowFit: e.fit < 6.5 && e.stars >= 4, why: signatureWhy(e, top, role, rec.analysis) };
+      } else {
+        const used = draft.usedBy(sigId);
+        signature = { heroId: sigId, unavailable: used ? (used.type === 'ban' ? 'banned' : used.side === side ? 'already picked by your team' : 'picked by the enemy') : 'not available' };
+      }
+    }
+    const board = { role, personal, entries, sections, bestOverall: top, bestForYou: forYou, forYouNote, compelling, signature, need, weights: w, ceilings: ceil, calibration: CALIBRATION_NOTE };
 
     /**
      * Compare 2–3 heroes on every dimension, then a conditional decision:
@@ -784,6 +797,35 @@ export function createRecommendationEngine({ db, meta, profile }) {
     if (a.ac >= 3 && a.fl <= 1) return 'Fragile when it enters: if the dive fails, it has little way back.';
     if (a.la <= 1) return 'Falls off late: it has to convert its early advantage before the enemy scales.';
     return 'No structural weakness stands out; the enemy picks will decide what to watch.';
+  }
+
+  /** Your signature hero for a role: the one you set, else your highest-rated (★4+) pool hero there. */
+  function signatureFor(role) {
+    const explicit = profile.signature ? profile.signature(role) : profile.data?.signature?.[role];
+    if (explicit && profile.stars(explicit, role) >= 1) return explicit;
+    return profile.entries(role).filter((e) => e.stars >= 4).sort((a, b) => b.stars - a.stars)[0]?.id || null;
+  }
+
+  /** "Why consider your signature?" — what it offers in this draft, and what you give up versus the best answer. */
+  function signatureWhy(e, top, role, A) {
+    const R = ROLE_NAME[role];
+    const name = e.hero.name;
+    const p = functionProfile(e.hero);
+    const exposed = A.enemy.members.filter((m) => m.hero.a.fl === 0 && m.hero.a.mob <= 1);
+    const pro = (p.pickoff >= 0.66 || p.dive >= 0.66) && exposed.length
+      ? `the enemy has ${exposed.length === 1 ? 'a vulnerable backline target' : `${exposed.length} vulnerable backline targets`} (${joinList(exposed.slice(0, 3).map((m) => m.hero.name))})`
+      : e.row.ctr.reasons[0] ? lc(e.row.ctr.reasons[0]) : e.row.need.gains[0] ? `it still covers ${e.row.need.gains[0].nd.short}` : null;
+    if (e === top) return `${name} is also the best overall answer for ${R} here.`;
+    // what you give up: prefer draft reasons (composition, counters, synergy, plan) over meta priority
+    const COST = { compositionFit: 'it adds less of what your team is missing', counterScore: 'it answers the enemy draft less well', synergyScore: 'it has weaker synergy with your picks',
+      winConditionFit: 'it reinforces your win condition less', draftPriority: 'it is less urgent to take now', roleFit: 'this is not its main lane', metaScore: 'it has lower competitive priority' };
+    const losses = Object.keys(COST).map((k) => ({ k, d: e.weights[k] * (e.scores[k] - top.scores[k]) })).filter((x) => x.d < -0.004).sort((a, b) => a.d - b.d);
+    const d = losses.find((x) => x.k !== 'metaScore') || losses[0];
+    const cost = d ? COST[d.k] : 'it scores a little lower across the board';
+    const stars = '★'.repeat(e.stars);
+    if (e.fit >= top.fit - 1.0) return `${name} is close to the best theoretical fit (${e.fit.toFixed(1)} vs ${top.hero.name} ${top.fit.toFixed(1)}) and your proficiency is ${stars}${pro ? `; ${pro}` : ''}.`;
+    if (e.fit >= 6) return `${name} is not the highest theoretical-fit ${R} pick (${e.fit.toFixed(1)} vs ${top.hero.name} ${top.fit.toFixed(1)}), but your proficiency is ${stars}${pro ? ` and ${pro}` : ''}. What you give up: ${cost}.`;
+    return `${name} remains playable for you (${stars}), but in this draft ${cost}${pro ? `; the upside is that ${pro}` : ''}.`;
   }
 
   /** "Why this matters" for a role, from what the team already has, what the role must add, and the enemy risk. */

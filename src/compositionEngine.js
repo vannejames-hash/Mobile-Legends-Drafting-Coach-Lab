@@ -472,9 +472,9 @@ export function itemization(ally, enemy) {
   const s = enemy.sum;
   if (enemy.damage.magicShare >= 0.6 && enemy.n >= 3) out.push({ title: 'Magic-heavy enemy', text: "Athena's Shield or Radiant Armor on your frontline and exposed carries." });
   if (enemy.damage.physicalShare >= 0.6 && enemy.n >= 3) out.push({ title: 'Physical-heavy enemy', text: 'Antique Cuirass or Blade Armor on the frontline; Wind of Nature on marksmen.' });
-  if (s.su >= 5) out.push({ title: 'Enemy sustain', text: 'Buy anti-heal early: Dominance Ice (tank), Sea Halberd (physical), Necklace of Durance (magic).' });
+  if (s.su >= 5) out.push({ title: 'Enemy sustain', text: 'Buy anti-heal early: Dominance Ice (tank), Sea Halberd (physical), Glowing Wand (magic).' });
   if (s.cc >= 9) out.push({ title: 'Heavy crowd control', text: 'Tough Boots on carries; consider Purify as battle spell.' });
-  if (s.bu >= 8) out.push({ title: 'Burst threat', text: 'Winter Truncheon on mages to survive burst windows; build one defensive item earlier.' });
+  if (s.bu >= 8) out.push({ title: 'Burst threat', text: 'Winter Crown on mages and marksmen to survive burst windows; build one defensive item earlier.' });
   if (s.fl >= 9) out.push({ title: 'Tanky frontline', text: 'Penetration: Malefic Roar (physical) or Divine Glaive (magic).' });
   if (s.mob >= 10) out.push({ title: 'Slippery lineup', text: 'Prioritize slows and lockdown: Ice Queen Wand on mages.' });
   for (const w of ally.damage.warnings) out.push({ title: 'Your damage profile', text: w });

@@ -1191,3 +1191,106 @@ body.viewer .slot-open, body.viewer .x, body.viewer .role-menu-btn { pointer-eve
 
 /* temporary sync diagnostics (?debug=1) */
 .sync-debug { position: fixed; left: 10px; bottom: 10px; z-index: 60; margin: 0; padding: 8px 10px; max-width: 360px; white-space: pre-wrap; font: 11px/1.45 var(--mono); color: #CFE8D8; background: rgba(8, 14, 18, .92); border: 1px solid #2B3D47; border-radius: 8px; pointer-events: none; }
+
+/* ================================================================ quick pick (sticky, outside the re-rendered desk) */
+.quickbar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--rule-2); }
+.quickbar[hidden] { display: none; }
+.qp { flex: 0 1 380px; min-width: 220px; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 6px 0 12px; border: 1px solid var(--rule); border-radius: 9px; background: var(--surface); color: var(--mute); }
+.qp:focus-within { border-color: var(--accent); }
+.qp svg { width: 15px; height: 15px; flex: none; }
+.qp input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--ink); font-size: 14px; }
+.qp input::-webkit-search-cancel-button { display: none; }
+.qp-res { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.qp-hit { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border: 1px solid var(--rule-2); border-radius: 8px; background: var(--surface); color: var(--ink-2); font-size: 13px; }
+.qp-hit.first { border-color: var(--accent); color: var(--ink); }
+.qp-hit kbd { margin-left: 2px; }
+.pt-qp { width: 24px; border-radius: 6px; }
+.qp-none { font-size: 12.5px; color: var(--mute); }
+
+/* ================================================================ your signature */
+.sig-badge { display: inline-block; margin-top: 2px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--warn); }
+.sig-row { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 16px 24px; align-items: center; margin-top: 12px; padding: 12px 14px; border: 1px dashed #4A4028; border-radius: 12px; background: linear-gradient(90deg, rgba(240, 180, 90, .06), transparent 70%); }
+.sig-card { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "lbl lbl" "pt main" "nums nums"; gap: 6px 12px; align-items: center; cursor: pointer; }
+.sig-card > .snap-l { grid-area: lbl; color: var(--warn); }
+.sig-card > .pt { grid-area: pt; }
+.sig-main { grid-area: main; display: grid; gap: 2px; }
+.sig-main b { font-family: var(--display); font-size: 18px; font-weight: 800; }
+.sig-main .stars { margin-left: 0; }
+.sig-main small { font-size: 11.5px; color: var(--mute); }
+.sig-nums { grid-area: nums; display: flex; gap: 18px; }
+.sig-nums small { display: block; font-size: 10.5px; color: var(--mute); text-transform: uppercase; letter-spacing: .05em; }
+.sig-nums b { font-family: var(--display); font-size: 18px; font-weight: 800; color: var(--ink); }
+.sig-nums b.df { color: var(--tier); }
+.sig-why p { margin: 2px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
+.sig-off { margin: 10px 0 0; }
+.id-sig { margin: 0; font-size: 12px; color: var(--mute); }
+.id-sig b { color: var(--warn); }
+
+/* ================================================================ role matchup */
+.rm { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rule-2); }
+.rm-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 10px; font-family: var(--display); font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); }
+.rm-h .hint { margin: 0; font-family: var(--body); font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.rm-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.rm-c b { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 15px; }
+.rm-c small { font-size: 12px; color: var(--mute); }
+.rm-line { margin: 10px 0 8px; font-size: 14px; color: var(--ink); }
+.rm-t { display: grid; }
+.rm-r { display: grid; grid-template-columns: 80px minmax(130px, 170px) 150px minmax(130px, 170px) minmax(0, 1fr); gap: 12px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--rule-2); }
+.rm-r:last-child { border-bottom: 0; }
+.rm-role { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--mute); }
+.rm-h1, .rm-h2 { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13.5px; }
+.rm-h2 { justify-content: flex-end; }
+.rm-edge { display: grid; justify-items: center; line-height: 1.1; }
+.rm-edge b { font-family: var(--display); font-size: 16px; font-weight: 800; }
+.rm-edge small { font-size: 10.5px; font-weight: 600; }
+.rm-why { font-size: 12.5px; color: var(--ink-2); }
+.e-up2 .rm-edge { color: var(--t-excellent); } .e-up1 .rm-edge { color: var(--t-strong); } .e-even .rm-edge { color: var(--mute); }
+.e-down1 .rm-edge { color: var(--t-situational); } .e-down2 .rm-edge { color: var(--t-lowfit); }
+.e-up2 { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--t-excellent) 55%, transparent); }
+.e-down2 { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--t-lowfit) 55%, transparent); }
+.more-clash { margin-top: 14px; }
+.more-clash summary, .you-more summary { cursor: pointer; font-size: 12.5px; color: var(--mute); }
+.mu-sub { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); max-width: 980px; }
+.won-g { margin-top: 18px; }
+
+/* ================================================================ compact strengths / weaknesses */
+.sw3 { display: grid; gap: 8px; }
+.sw-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sw-row > .snap-l { width: 92px; flex: none; }
+.swc { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 10px; border-radius: 7px; font-size: 13.5px; font-weight: 600; }
+.swc small { font-weight: 400; color: var(--mute); font-size: 12px; }
+.swc.good { background: var(--good-soft); color: var(--good); }
+.swc.bad { background: var(--warn-soft); color: var(--warn); }
+.sw-comp { margin: 4px 0 0; padding-left: 102px; font-size: 14px; color: var(--ink); }
+.sw-comp .snap-l { display: inline; margin-right: 8px; }
+
+/* ================================================================ itemization priorities (inside Your role) */
+.you-more { margin-top: 10px; }
+.itm { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule-2); }
+.itm-traits { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 10px; }
+.itm-t { font-size: 13px; color: var(--ink-2); }
+.itm-t .stars { margin-left: 4px; }
+.itm-t .stars .off { color: var(--raised); }
+.itm-list { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.itm-list li::marker { color: var(--mute); font-weight: 700; }
+.itm-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.itm-h b { font-size: 15px; color: var(--ink); }
+.itm-h .faint { font-size: 12px; }
+.itm-h .prio { margin-left: 0; }
+.itm-list p { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.itm-when span { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--mute); margin-right: 6px; }
+.itm-none { margin: 0; font-size: 14px; color: var(--ink-2); }
+.itm-warn { margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--warn); background: var(--surface); border-radius: 0 8px 8px 0; font-size: 13.5px; color: var(--ink); }
+.itm-src { margin: 8px 0 0; font-size: 11px; color: var(--faint); }
+
+@media (max-width: 1100px) {
+  .sig-row, .rm-sum { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .rm-r { grid-template-columns: 70px minmax(0, 1fr) 110px minmax(0, 1fr); }
+  .rm-why { grid-column: 2 / -1; }
+  .sw-comp { padding-left: 0; }
+}
+@media (max-width: 760px) {
+  .sig-row, .rm-sum { grid-template-columns: minmax(0, 1fr); }
+  .rm-r { grid-template-columns: 56px minmax(0, 1fr) 70px minmax(0, 1fr); gap: 6px; }
+  .rm-edge small { display: none; }
+}

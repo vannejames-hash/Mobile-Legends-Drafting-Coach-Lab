@@ -12,6 +12,7 @@
 import { analyzeDraft, ARCHETYPES, THREATS, heroVsTeam } from './compositionEngine.js';
 import { functionProfile } from './heroFunctions.js';
 import { heroFunction, jobText, avoidText } from './personalGuide.js';
+import { itemizationPriorities } from './itemization.js';
 
 const ROLES = ['exp', 'jungle', 'mid', 'gold', 'roam'];
 const ROLE_NAME = { exp: 'EXP', jungle: 'Jungle', mid: 'Mid', gold: 'Gold', roam: 'Roam' };
@@ -438,7 +439,7 @@ function strengthsWeaknesses(us, them, db) {
     const v = t.vector[d.k];
     const ratio = v / Math.max(0.05, avg5);
     const who = top(us.members, (p) => p[d.k], 0.5);
-    if (ratio >= 1.3) strengths.push({ id: d.k, text: `Strong ${d.label}`, detail: who.length ? `from ${names(who, 3)}` : '', w: ratio, evidence: [`${d.label} ${r2(v)} vs average ${r2(avg5)}`] });
+    if (ratio >= 1.3 && who.length) strengths.push({ id: d.k, text: `Strong ${d.label}`, detail: `from ${names(who, 3)}`, w: ratio, evidence: [`${d.label} ${r2(v)} vs average ${r2(avg5)}`] });
     else if (d.essential && ratio <= 0.62) weaknesses.push({ id: d.k, text: `Limited ${d.label}`, detail: who.length ? `only ${names(who, 2)}` : 'no real source', w: 1 / Math.max(0.2, ratio), evidence: [`${d.label} ${r2(v)} vs average ${r2(avg5)}`] });
   }
   // a key function carried by one hero
@@ -454,7 +455,7 @@ function strengthsWeaknesses(us, them, db) {
   }
   // composition-level edges vs this enemy
   const e = vectorEdges(t, them.team, 0.6);
-  for (const x of e.ours.slice(0, 2)) if (!strengths.some((s) => s.id === x.k)) strengths.push({ id: x.k, text: `More ${x.label} than the enemy`, detail: top(us.members, (p) => p[x.k], 0.5).length ? `from ${names(top(us.members, (p) => p[x.k], 0.5), 2)}` : '', w: 1 + x.d, evidence: [`${x.label} +${r2(x.d)}`] });
+  for (const x of e.ours.slice(0, 2)) if (!strengths.some((s) => s.id === x.k) && top(us.members, (p) => p[x.k], 0.5).length) strengths.push({ id: x.k, text: `More ${x.label} than the enemy`, detail: top(us.members, (p) => p[x.k], 0.5).length ? `from ${names(top(us.members, (p) => p[x.k], 0.5), 2)}` : '', w: 1 + x.d, evidence: [`${x.label} +${r2(x.d)}`] });
   for (const w of t.damage.warnings) weaknesses.push({ id: 'dmg', text: w.split(':')[0], detail: w.split(':')[1]?.trim() || '', w: 1, evidence: [`physical ${t.damage.physicalShare} · magic ${t.damage.magicShare} · burst ${t.damage.burstShare}`] });
   strengths.sort((a, b) => b.w - a.w);
   weaknesses.sort((a, b) => b.w - a.w);
@@ -564,7 +565,7 @@ function roleBreakdown(us, them, A, tgt) {
 
 // ------------------------------------------------------------------ personal (my role + hero, in THIS draft)
 
-function personalGuideFor(us, them, A, tgt, role, heroId, db) {
+function personalGuideFor(us, them, A, tgt, role, heroId, db, catalog = null) {
   const m = us.members.find((x) => x.hero.id === heroId && (!role || x.role === role)) || (heroId && role ? { role, hero: db.get(heroId) } : null);
   if (!m || !m.hero) return null;
   const h = m.hero;
@@ -619,9 +620,10 @@ function personalGuideFor(us, them, A, tgt, role, heroId, db) {
   }
   if (!enables.length) enables.push(cf.id === 'initiator' ? 'Nobody sets up for you: look for targets that are already isolated' : 'No teammate directly sets you up; play off the team formation');
   if (!limits.length) limits.push('No enemy hero directly shuts you down: your limit is positioning, not a counter');
+  const items = catalog ? itemizationPriorities({ hero: h, role: m.role, jobId: cf.id, us, them, catalog }) : null;
   return {
     role: m.role, hero: h, title: `${ROLE_NAME[m.role]} · ${h.name}`,
-    function: cf.label, functionId: cf.id,
+    function: cf.label, functionId: cf.id, items,
     job: cf.job, target, timing,
     enables: enables.slice(0, 3), limits: limits.slice(0, 3), avoid,
     evidence: [`function from ${others.length} teammates: ${fn.labels.join(', ')}`, ...(hunters.length ? [`enemy hunters ${hunters.map(nm).join(', ')}`] : [])],
@@ -685,6 +687,88 @@ function powerImplication(us, them) {
   if (E <= -0.08 && L <= -0.08) return { text: `The enemy peaks earlier and later; your best window is the ${us.curve.peak === 'mid' || !us.curve.peak ? 'mid game' : PHASE[us.curve.peak].toLowerCase()}, so force your fights there.`, evidence: ev };
   if (us.curve.peak && us.curve.peak === them.curve.peak) return { text: `Both drafts peak in the ${PHASE[us.curve.peak].toLowerCase()}: the first big fight of that phase decides tempo, so prepare vision for it.`, evidence: ev };
   return { text: 'Power curves are close: neither side can wait the other out, so objective setup decides it.', evidence: ev };
+}
+
+// ------------------------------------------------------------------ role matchup (draft value per role, not a 1v1)
+
+const DUTY_LABEL = { exp: 'side-lane pressure', jungle: 'objective and pickoff threat', mid: 'damage and control', gold: 'sustained damage', roam: 'engage and protection' };
+export const EDGE_TIERS = [
+  { min: 1.0, label: 'Strong advantage', tone: 'up2' },
+  { min: 0.3, label: 'Slight advantage', tone: 'up1' },
+  { min: -0.2, label: 'Even', tone: 'even' },
+  { min: -0.9, label: 'Slight disadvantage', tone: 'down1' },
+  { min: -Infinity, label: 'Major disadvantage', tone: 'down2' },
+];
+export const edgeTier = (e) => EDGE_TIERS.find((t) => Math.round(e * 10) / 10 >= t.min);
+
+/**
+ * roleMatchupScore: what this hero gives ITS team in THIS draft, compared with the enemy hero in the same role —
+ * plan contribution, role duty, counter value against the whole enemy team, direct counter, exposure to enemy
+ * hunters, power-curve fit and tempo. Not the Draft Fit, and not a claim about the 1v1.
+ */
+function roleValue(m, F, O, counterpart) {
+  const h = m.hero; const p = fp(h);
+  const plan = F.team.primary ? clamp(ARCHETYPES[F.team.primary.id].score(h)) : 0.5;
+  const ctr = heroVsTeam(h, O.team);
+  const direct = counterpart ? (h.counters.includes(counterpart.hero.id) ? 1 : counterpart.hero.counters.includes(h.id) ? -1 : 0) : 0;
+  const hunters = O.divers.length ? O.divers : O.pickers;
+  const vulnerable = F.exposed.includes(m) && hunters.length ? 1 : 0;
+  const curve = F.curve.peak === 'early' ? p.earlyPressure : F.curve.peak === 'late' ? p.scaling : (p.earlyPressure + p.scaling) / 2;
+  const duty = {
+    exp: 0.5 * p.sidePressure + 0.5 * Math.max(p.frontline, Math.min(1, (p.burst + p.sustainedDamage) / 1.5)),
+    jungle: 0.5 * p.objectiveControl + 0.5 * Math.max(p.pickoff, p.engage, p.dive),
+    mid: 0.5 * Math.max(p.burst, p.poke, p.sustainedDamage) + 0.5 * p.disruption,
+    gold: 0.6 * p.sustainedDamage + 0.4 * p.scaling,
+    roam: 0.5 * Math.max(p.engage, p.peel, p.protection) + 0.5 * p.frontline,
+  }[m.role] ?? 0.5;
+  const tempo = p.earlyPressure * ({ exp: 0.6, mid: 0.6, gold: 0.5, jungle: 0.5, roam: 0.2 }[m.role] ?? 0.4);
+  const parts = { plan: plan * 2, duty: duty * 1.2, counter: ctr.value * 1.5, direct: direct * 0.8, vulnerable: -vulnerable * 0.7, curve: curve * 0.6, tempo };
+  return { total: Object.values(parts).reduce((t, x) => t + x, 0), parts, ctr };
+}
+
+function roleMatchups(us, them, clash) {
+  const rows = [];
+  for (const role of ROLES) {
+    const a = us.by(role); const b = them.by(role);
+    if (!a || !b) continue;
+    const va = roleValue(a, us, them, b); const vb = roleValue(b, them, us, a);
+    const edge = Math.round((va.total - vb.total) * 10) / 10;
+    const diffs = Object.keys(va.parts).map((k) => ({ k, d: va.parts[k] - vb.parts[k] })).sort((x, y) => (edge >= 0 ? y.d - x.d : x.d - y.d));
+    const k = diffs[0].k;
+    const us_ = a.hero.name; const th = b.hero.name;
+    const pos = edge >= 0;
+    const REASON = {
+      plan: pos ? `${us_} drives your ${us.team.primary?.label || 'game'} plan more than ${th} drives theirs` : `${th} is more central to their ${them.team.primary?.label || 'game'} plan`,
+      duty: pos ? `Better ${DUTY_LABEL[role]}` : `Their ${DUTY_LABEL[role]} is stronger`,
+      counter: pos ? (va.ctr.reasons[0] ? `${us_}: ${va.ctr.reasons[0].charAt(0).toLowerCase()}${va.ctr.reasons[0].slice(1)}` : `${us_} answers their draft better`) : (vb.ctr.reasons[0] ? `${th}: ${vb.ctr.reasons[0].charAt(0).toLowerCase()}${vb.ctr.reasons[0].slice(1)}` : `${th} answers your draft better`),
+      direct: pos ? `${us_} directly counters ${th}` : `${th} directly counters ${us_}`,
+      vulnerable: pos ? `${th} is exposed to your ${names(us.divers.length ? us.divers : us.pickers, 1)}` : `${us_} is exposed to ${names(them.divers.length ? them.divers : them.pickers, 2)}`,
+      curve: pos ? `${us_} peaks with your team` : `${th} peaks with their team`,
+      tempo: pos ? 'Better early pressure' : 'Their early pressure is stronger',
+    };
+    const t = edgeTier(edge);
+    rows.push({ role, us: a.hero, them: b.hero, edge, label: t.label, tone: t.tone, reason: Math.abs(edge) <= 0.2 ? 'Even trade: neither side gains much here' : REASON[k], factor: k,
+      evidence: Object.keys(va.parts).map((x) => `${x} ${r2(va.parts[x])} vs ${r2(vb.parts[x])}`) });
+  }
+  if (!rows.length) return null;
+  const byEdge = [...rows].sort((x, y) => y.edge - x.edge);
+  const ours = byEdge[0].edge >= 0.3 ? byEdge[0] : null;
+  const worst = byEdge.at(-1).edge <= -0.3 ? byEdge.at(-1) : null;
+  // the enemy's strongest role: the enemy hero carrying the most value, regardless of our counterpart
+  const theirsBest = [...rows].sort((x, y) => roleValue(them.by(y.role), them, us, us.by(y.role)).total - roleValue(them.by(x.role), them, us, us.by(x.role)).total)[0];
+  // decisive role: the role the key clash runs through
+  const victimRole = (us.exposed[0] || us.carry)?.role;
+  const DECISIVE = { 'protect-backline': victimRole, 'break-protection': (us.divers[0] || us.pickers[0])?.role, 'reach-backline': (us.divers[0] || us.pickers[0])?.role,
+    'entry-vs-poke': us.engager?.role, 'spacing-vs-engage': (us.pokers[0] || us.carry)?.role, 'survive-early': (us.carry || us.scalers[0])?.role,
+    'convert-early': us.earlyHeroes[0]?.role, split: us.splitter?.role, 'answer-split': us.splitter?.role || 'exp' };
+  const dRole = DECISIVE[clash?.id] || [...rows].sort((x, y) => Math.abs(y.edge) - Math.abs(x.edge))[0].role;
+  const decisive = rows.find((r) => r.role === dRole) || [...rows].sort((x, y) => Math.abs(y.edge) - Math.abs(x.edge))[0];
+  const sentence = worst && ours
+    ? `Their ${ROLE_NAME[worst.role]} (${worst.them.name}) is your biggest problem, while your ${ROLE_NAME[ours.role]} (${ours.us.name}) has the clearest edge.`
+    : ours ? `Your ${ROLE_NAME[ours.role]} (${ours.us.name}) has the clearest edge; no role is a major disadvantage.`
+      : worst ? `Their ${ROLE_NAME[worst.role]} (${worst.them.name}) is your biggest problem, and no role gives you a clear edge back.`
+        : 'Every role is close: the draft is decided by the team plan, not by one role.';
+  return { rows, strongest: ours, enemyStrongest: theirsBest, disadvantage: worst, decisive, sentence };
 }
 
 // ------------------------------------------------------------------ coaching signals (scan layer)
@@ -826,7 +910,7 @@ function coachingSignals(us, them, clash, win, tgt, obj, P, sw) {
  * Full post-draft analysis for `ally` vs `enemy` (arrays of { role, hero }).
  * opts: rating (from rateDraft), myRole / myHero (personal guide), isAvailable(id) (counterfactual pool).
  */
-export function analyzeCompletedDraft({ db, ally, enemy, rating = null, myRole = null, myHero = null, isAvailable = () => true }) {
+export function analyzeCompletedDraft({ db, ally, enemy, rating = null, myRole = null, myHero = null, isAvailable = () => true, items = null }) {
   const A = analyzeDraft(ally, enemy, db);
   if (!A.ally.n || !A.enemy.n || !A.ally.primary || !A.enemy.primary) return null;
   const us = factsOf(A.ally, 'ally', db);
@@ -837,7 +921,7 @@ export function analyzeCompletedDraft({ db, ally, enemy, rating = null, myRole =
   const verdict = verdictSentence(A);
   const clash = keyClash(us, them);
   const win = winConditions(us, them, tgt, obj);
-  const personal = myHero ? personalGuideFor(us, them, A, tgt, myRole, myHero, db) : null;
+  const personal = myHero ? personalGuideFor(us, them, A, tgt, myRole, myHero, db, items) : null;
   const sig = coachingSignals(us, them, clash, win, tgt, obj, personal, sw);
   return {
     verdict: { rating: rating?.rating ?? null, label: rating?.label ?? null, tone: rating?.tone ?? null, text: verdict.text, evidence: verdict.evidence },
@@ -847,6 +931,7 @@ export function analyzeCompletedDraft({ db, ally, enemy, rating = null, myRole =
     plan: sig.plan,
     window: sig.window,
     interactions: sig.interactions,
+    roleMatchup: roleMatchups(us, them, clash),
     swings: sig.swings,
     power: { ally: us.curve, enemy: them.curve, implication: powerImplication(us, them) },
     roles: roleBreakdown(us, them, A, tgt),

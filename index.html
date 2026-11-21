@@ -16,6 +16,14 @@
     <section class="stage" id="board" aria-label="Current draft"></section>
     <main class="main">
       <section class="picker" aria-label="Hero selection">
+        <div class="quickbar" id="quickbar">
+          <label class="qp">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input id="quickpick" type="search" placeholder="Quick pick: type a hero, Enter logs it" aria-label="Quick pick: type a hero name, Enter logs the top match" autocomplete="off" spellcheck="false" />
+            <kbd>Enter</kbd>
+          </label>
+          <div class="qp-res" id="qpResults" aria-live="polite"></div>
+        </div>
         <div id="recs" class="recs"></div>
         <div class="filterbar" id="filterbar">
           <div class="chips" id="roleFilters" role="group" aria-label="Filter heroes"></div>

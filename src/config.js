@@ -8,6 +8,8 @@ export const CONFIG = {
   portraitManifestUrl: '/data/hero-portraits.json',
   // Draft formats (sequence, timers, enforcement). Default comes from the file.
   draftFormatsUrl: '/data/draft-formats.json',
+  // Item catalog (separate from heroes; updated per patch): names, categories, and the problems each item answers.
+  itemsUrl: '/data/items.json',
   stepSeconds: 30, // fallback when a format phase has no timer
   recommendationCount: 4,
 };

@@ -63,5 +63,8 @@ export function createPlayerProfile() {
     },
     remove(role, heroId) { delete profile.pool[role][heroId]; save(); },
     reset() { profile = defaultProfile(); save(); },
+    /** Signature hero per role (explicitly chosen; falls back to the top-rated pool hero in the engine). */
+    signature(role) { return profile.signature?.[role] || null; },
+    setSignature(role, heroId) { profile.signature = { ...(profile.signature || {}), [role]: heroId || undefined }; save(); },
   };
 }

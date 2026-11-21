@@ -1,0 +1,29 @@
+{
+  "version": "2026-11-15",
+  "source": "https://mlbbhub.com/items (page updated 2026-11-15; names, categories, base stats and passive names). Passive effects are mostly not listed there.",
+  "note": "Item catalog, separate from the hero database. `answers` tags (what draft problem an item addresses) are ML Draft Lab rules, not catalog data: review them when a patch changes an item. Only items in this file can be recommended; remove or rename an entry here when the game changes.",
+  "items": [
+    { "id": "antique-cuirass", "name": "Antique Cuirass", "category": "Defense", "stats": "HP, Physical DEF, HP Regen", "passive": "Deter", "answers": ["physical", "physical-skill"], "for": ["tank", "fighter", "support"] },
+    { "id": "blade-armor", "name": "Blade Armor", "category": "Defense", "stats": "Physical DEF +80", "passive": "Bladed Armor", "answers": ["physical", "physical-basic"], "for": ["tank", "fighter"] },
+    { "id": "athenas-shield", "name": "Athena's Shield", "category": "Defense", "stats": "HP +900, Magic DEF +48, HP Regen", "passive": "Shield", "answers": ["magic", "magic-burst"], "for": ["tank", "fighter", "support", "assassin", "marksman", "mage"] },
+    { "id": "radiant-armor", "name": "Radiant Armor", "category": "Defense", "stats": "HP +950, Magic DEF +40, HP Regen +12", "passive": "Holy Blessing", "answers": ["magic", "magic-sustained"], "for": ["tank", "fighter"] },
+    { "id": "immortality", "name": "Immortality", "category": "Defense", "stats": "HP +850, Physical DEF +15", "passive": "Immortal", "answers": ["burst"], "for": ["tank", "fighter", "assassin", "marksman", "mage", "support"] },
+    { "id": "winter-crown", "name": "Winter Crown", "category": "Attack·Magic", "stats": "HP +400, CDR +5%", "passive": "Frozen (active)", "answers": ["burst"], "for": ["mage", "marksman", "assassin"] },
+    { "id": "wind-of-nature", "name": "Wind of Nature", "category": "Attack", "stats": "Physical ATK +30, Attack Speed +20%, Lifesteal +10%", "passive": "Wind Chant (active)", "answers": ["physical", "burst"], "for": ["marksman"] },
+    { "id": "dominance-ice", "name": "Dominance Ice", "category": "Defense", "stats": "Physical DEF +40, Magic DEF +40, MS +5%", "passive": "Lifebane (anti-heal)", "answers": ["anti-heal", "physical"], "for": ["tank", "support", "fighter"] },
+    { "id": "sea-halberd", "name": "Sea Halberd", "category": "Attack", "stats": "Physical ATK +80, Attack Speed +20%", "passive": "Lifebane (anti-heal)", "answers": ["anti-heal"], "damage": "p", "for": ["marksman", "fighter", "assassin"] },
+    { "id": "glowing-wand", "name": "Glowing Wand", "category": "Magic", "stats": "HP +300, Magic Power +60, MS +5%", "passive": "Lifebane (anti-heal)", "answers": ["anti-heal"], "damage": "m", "for": ["mage", "assassin", "fighter"] },
+    { "id": "tough-boots", "name": "Tough Boots", "category": "Movement", "stats": "Magic DEF +18, MS +40", "passive": "Fortitude", "answers": ["anti-cc", "magic"], "for": ["tank", "fighter", "support", "assassin", "marksman", "mage"] },
+    { "id": "warrior-boots", "name": "Warrior Boots", "category": "Movement", "stats": "Physical DEF +18, MS +40", "passive": "Valor", "answers": ["physical"], "for": ["tank", "fighter", "support", "assassin"] },
+    { "id": "malefic-roar", "name": "Malefic Roar", "category": "Attack", "stats": "Physical ATK +60", "passive": "Armor Buster", "answers": ["penetration"], "damage": "p", "for": ["assassin", "fighter", "marksman"] },
+    { "id": "malefic-gun", "name": "Malefic Gun", "category": "Attack", "stats": "Physical ATK +40, Attack Speed +20%", "passive": "Armor Buster", "answers": ["penetration"], "damage": "p", "for": ["marksman"] },
+    { "id": "divine-glaive", "name": "Divine Glaive", "category": "Magic", "stats": "Magic Power +60", "passive": "Spellbreaker", "answers": ["penetration"], "damage": "m", "for": ["mage", "assassin"] },
+    { "id": "rose-gold-meteor", "name": "Rose Gold Meteor", "category": "Attack", "stats": "Physical ATK +30, Attack Speed +20%, Lifesteal +10%", "passive": "Dragon Scale", "answers": ["magic", "burst"], "for": ["marksman", "fighter"] },
+    { "id": "thunder-belt", "name": "Thunder Belt", "category": "Defense", "stats": "HP +600, Physical DEF +15, Magic DEF +15", "passive": "Thunderbolt", "answers": ["frontline"], "for": ["tank", "fighter"] },
+    { "id": "oracle", "name": "Oracle", "category": "Defense", "stats": "HP +850, Physical DEF +20, Magic DEF +20", "passive": "Bless", "answers": ["magic", "physical"], "for": ["tank", "fighter", "support"] },
+    { "id": "cursed-helmet", "name": "Cursed Helmet", "category": "Defense", "stats": "HP +1200, Magic DEF +20", "passive": "Burning Soul", "answers": ["magic"], "for": ["tank"] },
+    { "id": "guardian-helmet", "name": "Guardian Helmet", "category": "Defense", "stats": "HP +1800, HP Regen +20", "passive": "Recovery", "answers": ["poke"], "for": ["tank", "fighter"] },
+    { "id": "queens-wings", "name": "Queen's Wings", "category": "Defense", "stats": "HP +750, CDR +10%, Spell Vamp +10%", "passive": "Demonize", "answers": ["burst"], "for": ["fighter"] },
+    { "id": "ice-queen-wand", "name": "Ice Queen Wand", "category": "Magic", "stats": "HP +300, Magic Power +60, Spell Vamp +10%", "passive": "Ice Bound", "answers": ["mobility"], "damage": "m", "for": ["mage"] }
+  ]
+}
